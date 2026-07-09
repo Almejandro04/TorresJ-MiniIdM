@@ -142,4 +142,4 @@ Este repositorio no debe incluir claves privadas reales, certificados generados,
 
 ## Nota Sobre Ayuda Externa
 
-La estructura inicial del proyecto fue preparada con apoyo de una herramienta de asistencia tecnica. La implementacion, pruebas, analisis y conclusiones deberan ser revisadas, ejecutadas y documentadas por el autor del proyecto.
+La estructura inicial del proyecto fue preparada con apoyo de una herramienta de asistencia tecnica. La implementacion, pruebas, analisis y conclusiones seran ser revisadas, ejecutadas y documentadas por el autor del proyecto.
