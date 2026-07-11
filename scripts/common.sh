@@ -5,10 +5,10 @@
 
 set -euo pipefail
 
-PROJECT_NAME = "MiniIdM"
+PROJECT_NAME = "TorresJ-MiniIdM"
 
 print_title() {
-    local message = "$1"
+    local message="$1"
     echo ""
     echo "==========================="
     echo "%message"
@@ -16,17 +16,17 @@ print_title() {
 }
 
 print_info() {
-    local message = "$1"
+    local message="$1"
     echo "[INFO] $message"
 }
 
 print_ok() {
-    local message = "$1"
+    local message="$1"
     echo "[OK] $message"
 }
 
 print_error() {
-    local message = "$1"
+    local message="$1"
     echo "[ERROR] $message" >&2
 }
 
@@ -38,7 +38,7 @@ require_root() {
 }
 
 require_command() {
-    local command_name = "$1"
+    local command_name="$1"
 
     if ! command -v "$command_name" >/dev/null 2>&1; then
         print_error "No se encontro el comando requerido: $command_name"
@@ -47,7 +47,7 @@ require_command() {
 }
 
 check_file_exists() {
-    local file_path = "$1"
+    local file_path="$1"
     
     if [ ! -d "$file_path" ]; then
         print_error "No existe el archivo: $file_path"
@@ -56,7 +56,7 @@ check_file_exists() {
 }
 
 check_dir_exists() {
-    local dir_path = "$1"
+    local dir_path="$1"
     
     if [ ! -d "$dir_path" ]; then
         print_error "No existe el directorio: $dir_path"
@@ -65,7 +65,7 @@ check_dir_exists() {
 }
 
 confirm_step() {
-    local message = "$1"
+    local message="$1"
     print_info "$message"
 }
 
