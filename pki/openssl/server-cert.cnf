@@ -1,0 +1,27 @@
+# Configuracion OpenSSL para certificados de servidor ECDSA
+
+[ req ]
+default_bits = 256
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+string_mask = utf8only
+default_md = sha256
+prompt = no
+
+[ req_distinguished_name ]
+C = EC
+ST = Pichincha
+L = Quito
+O = EPN
+OU = FIS
+CN = SERVER_NAME_PLACEHOLDER
+
+[ v3_req ]
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyAgreement
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = SERVER_NAME_PLACEHOLDER
+DNS.2 = SERVER_ALIAS_PLACEHOLDER

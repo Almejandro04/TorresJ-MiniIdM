@@ -1,9 +1,10 @@
-.PHONY: help check pki ldap kerberos integration web ha monitoring test clean
+.PHONY: help check inventory pki ldap kerberos integration web ha monitoring test clean
 
 help:
 	@echo "TorresJ-MiniIdM - Comandos disponibles"
 	@echo ""
 	@echo "  make check          Verificar estructura basica y entorno"
+	@echo "  make inventory      Mostrar plan de nodos"
 	@echo "  make pki            Ejecutar fase PKI"
 	@echo "  make ldap           Ejecutar fase LDAP"
 	@echo "  make kerberos       Ejecutar fase Kerberos"
@@ -28,8 +29,14 @@ check:
 	@test -d tests
 	@test -d results
 	@test -d scripts
+	@test -d inventory
 	@bash scripts/00-check-environment.sh
 	@echo "Estructura basica correcta."
+
+inventory:
+	@echo "Plan de nodos:"
+	@echo ""
+	@cat inventory/topology.md
 
 pki:
 	@echo "TODO: implementar fase PKI."

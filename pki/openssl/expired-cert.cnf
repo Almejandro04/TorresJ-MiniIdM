@@ -1,0 +1,27 @@
+# Configuracion OpenSSL para certificado expirado de prueba
+
+[ req ]
+default_bits = 256
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+string_mask = utf8only
+default_md = sha256
+prompt = no
+
+[ req_distinguished_name ]
+C = EC
+ST = Pichincha
+L = Quito
+O = EPN
+OU = FIS
+CN = expired.fis.epn.ec
+
+[ v3_req ]
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyAgreement
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = expired.fis.epn.ec
+DNS.2 = expired

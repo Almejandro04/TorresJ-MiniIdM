@@ -1,17 +1,17 @@
-#!/usr/bin/env bach
+#!/usr/bin/env bash
 
 # Funciones comunes para el proyecto MiniIdM
 # El archivo sera usado por otros scripts del proyecto
 
 set -euo pipefail
 
-PROJECT_NAME = "TorresJ-MiniIdM"
+PROJECT_NAME="TorresJ-MiniIdM"
 
 print_title() {
     local message="$1"
     echo ""
     echo "==========================="
-    echo "%message"
+    echo "$message"
     echo "==========================="
 }
 
@@ -31,7 +31,7 @@ print_error() {
 }
 
 require_root() {
-    if ["$(id -u)" -ne 0]; then
+    if [ "$(id -u)" -ne 0 ]; then
         print_error "Este script debe ejecutarse como root o con sudo"
         exit 1
     fi
@@ -49,7 +49,7 @@ require_command() {
 check_file_exists() {
     local file_path="$1"
     
-    if [ ! -d "$file_path" ]; then
+    if [ ! -f "$file_path" ]; then
         print_error "No existe el archivo: $file_path"
         exit 1
     fi

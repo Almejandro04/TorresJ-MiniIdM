@@ -10,7 +10,7 @@ source "$SCRIPT_DIR/common.sh"
 
 print_title "Limpieza"
 
-print_title "Directorio del proyecto: $PROJECT_DIR"
+print_info "Directorio del proyecto: $PROJECT_DIR"
 
 find "$PROJECT_DIR" -name "*.tmp" -type f -delete
 find "$PROJECT_DIR" -name "*.log" -type f -delete
