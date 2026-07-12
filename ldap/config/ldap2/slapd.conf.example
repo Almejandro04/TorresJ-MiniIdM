@@ -1,0 +1,48 @@
+# Ejemplo configuraciones LDAP replica
+
+include /etc/ldap/schema/core.schema
+include /etc/ldap/schema/cosine.schema
+include /etc/ldap/schema/nis.schema
+include /etc/ldap/schema/inetorgPerson.schema
+
+pidfile /var/run/slapd/slapd.pid
+argsfile /var/run/slapd/slapd.args
+
+modulepath /usr/lib/ldap
+moduleload back_mdb
+
+TLSCACertificateFile /etc/ssl/miniidm/ca-root.crt
+TLSCertificateFile /etc/ssl/miniidm/ldap2.fis.epn.ec.crt
+TLSCertificateKeyFile /etc/ssl/miniidm/ldap2.fis.epn.ec.key
+
+database mdb
+maxsize 1073741824
+suffix "dc=fis,dc=epn,dc=ec"
+rootdn "cn=admin,dc=fis,dc=epn,dc=ec"
+rootpw REPLACE_WITH_HASHED_PASSWORD
+directory /var/lib/ldap
+
+index objectClass eq
+index uid eq
+index cn,sn eq
+index entryCSN,entryUUID eq
+
+syncrepl rid=002
+    provider=ldap://ldap1.fis.epn.ec
+    bindmethod=simple
+    binddn="uid=svc-replica,ou=services,dc=fis,dc=epn,dc=ec"
+    credentials=REPLACE_WITH_PASSWORD
+    searchbase="dc=fis,dc=epn,dc=ec"
+    type=refreshAndPersist
+    retry="5 5 300 +"
+    timeout=1
+
+updateref ldap://ldap1.fis.epn.ec
+    
+access to attrs=userPassword
+    by self write
+    by anonymous auth
+    by * none
+
+access to *
+    by * read 

@@ -1,0 +1,17 @@
+# Usuario adicional prueba replicacion
+
+dn: uid=testreplica,ou=users,dc=fis,dc=epn,dc=ec
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: testreplica
+cn: Test replica
+sn: Replica
+givenName: Test
+mail: testreplica@fis.epn.ec
+uidNumber: 20099
+gidNumber: 10001
+homeDirectory: /home/testreplica
+loginShell: /bin/bash
+userPassword: {SSHA}PLACEHOLDER_PASSWORD_HASH

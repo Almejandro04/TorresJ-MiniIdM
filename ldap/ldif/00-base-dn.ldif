@@ -1,0 +1,8 @@
+# Base DN de LDAP
+
+dn: dc=fis,dc=epn,dc=ec
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: FIS EPN
+dc: fis

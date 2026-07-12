@@ -1,0 +1,50 @@
+# Usuarios de prueba
+
+dn: uid=jperez,ou=users,dc=fis,dc=epn,dc=ec
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: jperez
+cn: Juan Perez
+sn: Perez
+givenName: Juan
+mail: jperez@fis.epn.ec
+uidNumber: 20001
+gidNumber: 10001
+homeDirectory: /home/jperez
+loginShell: /bin/bash
+userPassword: {SSHA}PLACEHOLDER_PASSWORD_HASH
+
+dn: uid=malvan,ou=users,dc=fis,dc=epn,dc=ec
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: malvan
+cn: Maria Alvan
+sn: Alvan
+givenName: Maria
+mail: malvan@fis.epn.ec
+uidNumber: 20002
+gidNumber: 10002
+homeDirectory: /home/malvan
+loginShell: /bin/bash
+userPassword: {SSHA}PLACEHOLDER_PASSWORD_HASH
+
+dn: uid=dnoboa,ou=users,dc=fis,dc=epn,dc=ec
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: dnoboa
+cn: Diego Noboa
+sn: Noboa
+givenName: Diego
+mail: dnoboa@fis.epn.ec
+uidNumber: 20003
+gidNumber: 10003
+homeDirectory: /home/dnoboa
+loginShell: /bin/bash
+userPassword: {SSHA}PLACEHOLDER_PASSWORD_HASH
+    

@@ -1,0 +1,12 @@
+# TLS replica ldap2
+
+dn: cn=config
+changetype: modify
+replace: olcTLSCertificateFile
+olcTLSCertificateFile: /etc/ssl/miniidm/ldap2.fis.epn.ec.crt
+-
+replace: olcTLSCertificateKeyFile
+olcTLSCertificateKeyFile: /etc/ssl/miniidm/ldap2.fis.epn.ec.key
+-
+replace: olcTLSCACertificateFile
+olcTLSCACertificateFile: /etc/ssl/miniidm/ca-root.crt

@@ -1,4 +1,4 @@
-.PHONY: help check inventory pki ldap kerberos integration web ha monitoring test clean
+.PHONY: help check inventory pki pki-demo-certs ldap kerberos integration web ha monitoring test clean
 
 help:
 	@echo "TorresJ-MiniIdM - Comandos disponibles"
@@ -14,6 +14,7 @@ help:
 	@echo "  make monitoring     Ejecutar fase Monitoreo"
 	@echo "  make test           Ejecutar pruebas"
 	@echo "  make clean          Limpiar archivos temporales"
+	@echo "  make pki-demo-certs Crear certificados demo de servidores"
 	@echo ""
 
 check:
@@ -39,10 +40,22 @@ inventory:
 	@cat inventory/topology.md
 
 pki:
-	@echo "TODO: implementar fase PKI."
+	@bash pki/scripts/00-init-ca.sh
+
+pki-demo-certs:
+	@bash pki/scripts/01-create-server-cert.sh ldap1.fis.epn.ec ldap1
+	@bash pki/scripts/01-create-server-cert.sh ldap2.fis.epn.ec ldap2
+	@bash pki/scripts/01-create-server-cert.sh kdc1.fis.epn.ec kdc1
+	@bash pki/scripts/01-create-server-cert.sh kdc2.fis.epn.ec kdc2
+	@bash pki/scripts/01-create-server-cert.sh web.fis.epn.ec web
 
 ldap:
-	@echo "TODO: implementar fase LDAP."
+	@echo "  bash ldap/scripts/00-install-openldap.sh"
+	@echo "  bash ldap/scripts/01-load-base-dit.sh"
+	@echo "  bash ldap/scripts/02-enable-ldaps.sh ldap1"
+	@echo "  bash ldap/scripts/03-test-ldap-search.sh ldap://localhost"
+	@echo "  bash ldap/scripts/04-test-replication.sh"
+	@echo "  bash ldap/scripts/05-backup-ldap.sh ldap://localhost"
 
 kerberos:
 	@echo "TODO: implementar fase Kerberos."

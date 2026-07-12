@@ -1,0 +1,25 @@
+# Grupos Base
+
+dn: cn=estudiantes,ou=groups,dc=fis,dc=epn,dc=ec
+objectClass: top
+objectClass: posixGroup
+cn: estudiantes
+gidNumber: 10001
+
+dn: cn=profesores,ou=groups,dc=fis,dc=epn,dc=ec
+objectClass: top
+objectClass: posixGroup
+cn: profesores
+gidNumber: 10002
+
+dn: cn=empleados,ou=groups,dc=fis,dc=epn,dc=ec
+objectClass: top
+objectClass: posixGroup
+cn: empleados
+gidNumber: 10003
+
+dn: cn=servicios,ou=groups,dc=fis,dc=epn,dc=ec
+objectClass: top
+objectClass: posixGroup
+cn: servicios
+gidNumber: 10004

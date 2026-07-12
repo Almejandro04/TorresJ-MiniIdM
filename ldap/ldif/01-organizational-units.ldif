@@ -1,0 +1,16 @@
+# Unidades organizacionales principales
+
+dn: ou=users,dc=fis,dc=epn,dc=ec
+objectClass: top
+objectClass: organizationalUnit
+ou: users
+
+dn: ou=groups,dc=fis,dc=epn,dc=ec
+objectClass: top
+objectClass: organizationalUnit
+ou: groups
+
+dn: ou=services,dc=fis,dc=epn,dc=ec
+objectClass: top
+objectClass: organizationalUnit
+ou: services

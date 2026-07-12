@@ -1,0 +1,36 @@
+# Configuracion conceptual para LDAP master
+
+include /etc/ldap/schema/core.schema
+include /etc/ldap/schema/cosine.schema
+include /etc/ldap/schema/nis.schema
+include /etc/ldap/schema/inetorgPerson.schema
+
+pidfile /var/run/slapd/slapd.pid
+argsfile /var/run/slapd/slapd.args
+
+modulepath /usr/lib/ldap
+moduleload back_mdb
+
+TLSCACertificateFile /etc/ssl/miniidm/ca-root.crt
+TLSCertificateFile /etc/ssl/miniidm/ldap1.fis.epn.ec.crt
+TLSCertificateKeyFile /etc/ssl/miniidm/ldap1.fis.epn.ec.key
+
+database mdb
+maxsize 1073741824
+suffix "dc=fis,dc=epn,dc=ec"
+rootdn "cn=admin,dc=fis,dc=epn,dc=ec"
+rootpw REPLACE_WITH_HASHED_PASSWORD
+directory /var/lib/ldap
+
+index objectClass eq
+index uid eq
+index cn,sn eq
+index entryCSN,entryUUID eq
+
+access to attrs=userPassword
+    by self write
+    by anonymous auth
+    by * none
+
+access to *
+    by * read 
