@@ -1,0 +1,2 @@
+host/kdc1.fis.epn.ec
+host/kdc2.fis.epn.ec

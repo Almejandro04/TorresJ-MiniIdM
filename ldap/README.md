@@ -30,10 +30,14 @@ Ejecutar estos pasos en cada VM LDAP. Los comandos que cambian el sistema requie
 2. sudo make ldap-config-apply
 3. sudo make ldap-certs LDAP_NODE=ldap1
 4. sudo make ldap-enable-ldaps LDAP_NODE=ldap1
-5. make ldap-hash
-6. Reemplazar REPLACE_WITH_HASHED_PASSWORD en los LDIF
-7. make ldap-load
-8. make ldap-search LDAP_URI=ldap://localhost
+5. sudo make ldap-enable-ldaps-listener
+6. make ldap-hash
+7. Reemplazar REPLACE_WITH_HASHED_PASSWORD en los LDIF
+8. make ldap-load
+9. sudo make ldap-syncprov en ldap1
+10. Reemplazar credentials=REPLACE_WITH_PASSWORD en ldap2
+11. sudo make ldap-replication-consumer en ldap2
+12. make ldap-search LDAP_URI=ldap://localhost
 ```
 
 Para `ldap2`, usar `LDAP_NODE=ldap2` en los pasos de certificados y TLS.
@@ -51,6 +55,9 @@ Para `ldap2`, usar `LDAP_NODE=ldap2` en los pasos de certificados y TLS.
 | scripts/05-test-ldap-search.sh | Ejecuta una consulta LDAP basica |
 | scripts/06-test-replication.sh | Plantilla de consulta para replicacion |
 | scripts/07-backup-ldap.sh | Genera un respaldo LDIF |
+| scripts/08-enable-syncprov.sh | Habilita syncprov en ldap1 |
+| scripts/09-enable-replication-consumer.sh | Habilita syncrepl en ldap2 |
+| scripts/10-enable-ldaps-listener.sh | Habilita ldaps:/// en slapd |
 
 ## Seguridad
 
@@ -60,4 +67,4 @@ La clave privada se instala con permisos 0640 y grupo `openldap`. La CA privada 
 
 ## Alcance actual
 
-La replicacion avanzada queda como plantilla para una VM real. No aplicar `replication-provider.ldif` ni `replication-consumer.ldif` hasta validar conectividad, credenciales y permisos entre ldap1 y ldap2.
+Aplicar syncprov solo en ldap1. Aplicar el consumidor solo en ldap2 despues de reemplazar la credencial de `svc-replica` fuera de Git.

@@ -1,4 +1,4 @@
-.PHONY: help check inventory pki pki-demo-certs ldap ldap-hash ldap-config ldap-config-apply ldap-certs ldap-enable-ldaps ldap-load ldap-search ldap-backup kerberos kerberos-users kerberos-services kerberos-keytabs kerberos-kinit kerberos-propagate kerberos-failover integration integration-users integration-map integration-auth web web-https web-kerberos ha ha-test ha-failover monitoring monitoring-start monitoring-check test test-run clean
+.PHONY: help check inventory pki pki-demo-certs ldap ldap-hash ldap-config ldap-config-apply ldap-certs ldap-enable-ldaps ldap-enable-ldaps-listener ldap-load ldap-syncprov ldap-replication-consumer ldap-search ldap-backup kerberos kerberos-users kerberos-services kerberos-keytabs kerberos-host-keytabs kerberos-check-propagation kerberos-kinit kerberos-propagate kerberos-failover integration integration-users integration-map integration-auth web web-https web-kerberos ha ha-test ha-failover monitoring monitoring-start monitoring-check test test-run clean
 
 LDAP_NODE ?= ldap1
 LDAP_URI ?= ldap://localhost
@@ -29,13 +29,18 @@ help:
 	@echo "  make ldap-config-apply Aplicar configuracion base de slapd"
 	@echo "  make ldap-certs LDAP_NODE=ldap1 Copiar certificados LDAP"
 	@echo "  make ldap-enable-ldaps LDAP_NODE=ldap1 Aplicar TLS LDAP"
+	@echo "  make ldap-enable-ldaps-listener Habilitar listener ldaps:///"
 	@echo "  make ldap-load      Cargar DIT LDAP"
+	@echo "  make ldap-syncprov  Configurar proveedor ldap1"
+	@echo "  make ldap-replication-consumer Configurar consumidor ldap2"
 	@echo "  make ldap-search LDAP_URI=ldap://localhost Consultar LDAP"
 	@echo "  make ldap-backup LDAP_URI=ldap://localhost Respaldar LDAP"
 	@echo "  make kerberos       Mostrar orden de despliegue Kerberos"
 	@echo "  make kerberos-users Crear principals de usuario"
 	@echo "  make kerberos-services Crear principals de servicio"
 	@echo "  make kerberos-keytabs Exportar keytabs de servicio"
+	@echo "  make kerberos-host-keytabs Exportar keytabs host"
+	@echo "  make kerberos-check-propagation Revisar requisitos kprop"
 	@echo "  make kerberos-kinit KRB_USER=jperez Probar kinit"
 	@echo "  make kerberos-propagate KDC_SECONDARY=kdc2.fis.epn.ec Propagar KDC"
 	@echo "  make kerberos-failover KRB_USER=jperez Probar failover KDC"
@@ -95,9 +100,12 @@ ldap:
 	@echo "  2. sudo make ldap-config-apply"
 	@echo "  3. sudo make ldap-certs LDAP_NODE=ldap1"
 	@echo "  4. sudo make ldap-enable-ldaps LDAP_NODE=ldap1"
-	@echo "  5. Reemplazar hashes en ldap/ldif con make ldap-hash"
-	@echo "  6. make ldap-load"
-	@echo "  7. make ldap-search LDAP_URI=ldap://localhost"
+	@echo "  5. sudo make ldap-enable-ldaps-listener"
+	@echo "  6. Reemplazar hashes en ldap/ldif con make ldap-hash"
+	@echo "  7. make ldap-load"
+	@echo "  8. sudo make ldap-syncprov en ldap1"
+	@echo "  9. sudo make ldap-replication-consumer en ldap2"
+	@echo " 10. make ldap-search LDAP_URI=ldap://localhost"
 
 ldap-hash:
 	@bash ldap/scripts/00-generate-password-hash.sh
@@ -114,8 +122,17 @@ ldap-certs:
 ldap-enable-ldaps:
 	@bash ldap/scripts/03-enable-ldaps.sh "$(LDAP_NODE)"
 
+ldap-enable-ldaps-listener:
+	@bash ldap/scripts/10-enable-ldaps-listener.sh
+
 ldap-load:
 	@bash ldap/scripts/04-load-base-dit.sh
+
+ldap-syncprov:
+	@bash ldap/scripts/08-enable-syncprov.sh
+
+ldap-replication-consumer:
+	@bash ldap/scripts/09-enable-replication-consumer.sh
 
 ldap-search:
 	@bash ldap/scripts/05-test-ldap-search.sh "$(LDAP_URI)"
@@ -130,8 +147,10 @@ kerberos:
 	@echo "  3. sudo make kerberos-users"
 	@echo "  4. sudo make kerberos-services"
 	@echo "  5. sudo make kerberos-keytabs"
-	@echo "  6. Configurar kdc2 con kerberos/scripts/06-configure-secondary-kdc.sh"
-	@echo "  7. make kerberos-propagate"
+	@echo "  6. sudo make kerberos-host-keytabs"
+	@echo "  7. Configurar kdc2 con kerberos/scripts/06-configure-secondary-kdc.sh"
+	@echo "  8. sudo make kerberos-check-propagation"
+	@echo "  9. sudo make kerberos-propagate"
 
 kerberos-users:
 	@bash kerberos/scripts/02-create-user-principals.sh
@@ -141,6 +160,12 @@ kerberos-services:
 
 kerberos-keytabs:
 	@bash kerberos/scripts/04-export-keytabs.sh
+
+kerberos-host-keytabs:
+	@bash kerberos/scripts/09-export-host-keytabs.sh
+
+kerberos-check-propagation:
+	@bash kerberos/scripts/07-propagate-kdc-db.sh --check "$(KDC_SECONDARY)"
 
 kerberos-kinit:
 	@bash kerberos/scripts/05-test-kinit.sh "$(KRB_USER)"

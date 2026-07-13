@@ -20,6 +20,7 @@ install -m 0644 "$PROJECT_DIR/kerberos/config/kpropd.acl" /etc/krb5kdc/kpropd.ac
 
 systemctl enable --now kpropd
 
-print_info "Agregar host/kdc2.fis.epn.ec al KDC primario y copiar su keytab al secundario"
+print_info "Copiar host_kdc2.fis.epn.ec.keytab desde kdc1 a kdc2"
+print_info "Instalar en kdc2 como /etc/krb5.keytab con permisos 0600"
 print_info "La primera base debe llegar con kerberos/scripts/07-propagate-kdc-db.sh"
 print_ok "KDC secundario preparado"
