@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Consulta LDAP basica
+# prueba consulta LDAP
 
 set -euo pipefail
 

@@ -1,0 +1,4 @@
+ldap/ldap1.fis.epn.ec
+ldap/ldap2.fis.epn.ec
+http/web.fis.epn.ec
+HTTP/web.fis.epn.ec

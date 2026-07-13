@@ -1,4 +1,4 @@
-# Usuarios de prueba
+# usuarios prueba
 
 dn: uid=jperez,ou=users,dc=fis,dc=epn,dc=ec
 objectClass: top
@@ -14,7 +14,7 @@ uidNumber: 20001
 gidNumber: 10001
 homeDirectory: /home/jperez
 loginShell: /bin/bash
-userPassword: {SSHA}PLACEHOLDER_PASSWORD_HASH
+userPassword: REPLACE_WITH_HASHED_PASSWORD
 
 dn: uid=malvan,ou=users,dc=fis,dc=epn,dc=ec
 objectClass: top
@@ -30,7 +30,7 @@ uidNumber: 20002
 gidNumber: 10002
 homeDirectory: /home/malvan
 loginShell: /bin/bash
-userPassword: {SSHA}PLACEHOLDER_PASSWORD_HASH
+userPassword: REPLACE_WITH_HASHED_PASSWORD
 
 dn: uid=dnoboa,ou=users,dc=fis,dc=epn,dc=ec
 objectClass: top
@@ -46,5 +46,4 @@ uidNumber: 20003
 gidNumber: 10003
 homeDirectory: /home/dnoboa
 loginShell: /bin/bash
-userPassword: {SSHA}PLACEHOLDER_PASSWORD_HASH
-    
+userPassword: REPLACE_WITH_HASHED_PASSWORD

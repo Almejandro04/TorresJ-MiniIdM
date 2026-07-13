@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# respaldo LDIF con directorio LDAP
+# respaldo LDAP
 
 set -euo pipefail
 

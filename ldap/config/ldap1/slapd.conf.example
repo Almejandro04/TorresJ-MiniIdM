@@ -1,4 +1,4 @@
-# Configuracion conceptual para LDAP master
+# configuracion ldap1
 
 include /etc/ldap/schema/core.schema
 include /etc/ldap/schema/cosine.schema
@@ -33,4 +33,4 @@ access to attrs=userPassword
     by * none
 
 access to *
-    by * read 
+    by * read

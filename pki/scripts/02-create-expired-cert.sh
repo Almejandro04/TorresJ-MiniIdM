@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# creacion de certificado caducado para pruebas
+# certificado expirado
 
 set -euo pipefail
 
@@ -39,16 +39,14 @@ openssl req \
     -out "$EXPIRED_CSR" \
     -config "$EXPIRED_CONFIG"
 
-print_info "Certificado validez 1 dia"
-openssl x509 \
-    -req \
+print_info "Certificado con fecha de expiracion historica"
+openssl ca \
+    -batch \
+    -config "pki/openssl/ca-root.cnf" \
     -in "$EXPIRED_CSR" \
-    -CA "$CA_CERT" \
-    -CAkey "$CA_KEY" \
-    -CAcreateserial \
     -out "$EXPIRED_CERT" \
-    -days 1 \
-    -sha256 \
+    -startdate 20200101000000Z \
+    -enddate 20200102000000Z \
     -extensions v3_req \
     -extfile "$EXPIRED_CONFIG"
 

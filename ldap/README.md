@@ -2,78 +2,62 @@
 
 ## Objetivo
 
-Esta carpeta contiene los archivos base para configurar el servicio de directorio LDAP del proyecto MiniIdM.
+Esta carpeta contiene la base LDAP del proyecto MiniIdM.
 
-LDAP almacenara informacion centralizada de usuarios, grupos y cuentas de servicio.
-
-## Base DN
+LDAP almacena usuarios, grupos y cuentas de servicio bajo el DN:
 
 ```text
 dc=fis,dc=epn,dc=ec
 ```
 
-## Componentes
-
-| Componente | Descripcion |
-|---|---|
-| LDAP master | Servidor principal de escritura |
-| LDAP replica | Servidor secundario para replicacion y lectura |
-| LDAPS | LDAP protegido con TLS |
-| DIT | Arbol de informacion del directorio |
-| LDIF | Archivos usados para cargar entradas LDAP |
-
-## Estructura del DIT
+## DIT
 
 ```text
 dc=fis,dc=epn,dc=ec
-├── ou=users
-├── ou=groups
-└── ou=services
+|-- ou=users
+|-- ou=groups
+`-- ou=services
 ```
 
-## Usuarios de prueba
+Los usuarios de prueba son `jperez`, `malvan` y `dnoboa`. Cada entrada incluye UID, grupo, home, shell y correo.
 
-| Usuario | UID | Grupo |
-|---|---|---|
-| Juan Perez | jperez | estudiantes |
-| Maria Alvan | malvan | profesores |
-| Diego Noboa | dnoboa | empleados |
+## Orden de despliegue
 
-## Archivos LDIF
+Ejecutar estos pasos en cada VM LDAP. Los comandos que cambian el sistema requieren root.
 
-| Archivo | Uso |
-|---|---|
-| ldif/00-base-dn.ldif | Crea la base del directorio |
-| ldif/01-organizational-units.ldif | Crea unidades organizacionales |
-| ldif/02-groups.ldif | Crea grupos LDAP |
-| ldif/03-users.ldif | Crea usuarios de prueba |
-| ldif/04-service-accounts.ldif | Crea cuentas de servicio |
-| ldif/05-test-user.ldif | Usuario adicional para probar replicacion |
+```text
+1. bash ldap/scripts/00-install-openldap.sh
+2. sudo make ldap-config-apply
+3. sudo make ldap-certs LDAP_NODE=ldap1
+4. sudo make ldap-enable-ldaps LDAP_NODE=ldap1
+5. make ldap-hash
+6. Reemplazar REPLACE_WITH_HASHED_PASSWORD en los LDIF
+7. make ldap-load
+8. make ldap-search LDAP_URI=ldap://localhost
+```
 
-## Configuracion
-
-| Archivo | Uso |
-|---|---|
-| config/ldap1/tls.ldif | Configuracion TLS para LDAP master |
-| config/ldap2/tls.ldif | Configuracion TLS para LDAP replica |
-| config/ldap1/replication-provider.ldif | Plantilla de proveedor de replicacion |
-| config/ldap2/replication-consumer.ldif | Plantilla de consumidor de replicacion |
-| config/ldap1/slapd.conf.example | Referencia de configuracion para ldap1 |
-| config/ldap2/slapd.conf.example | Referencia de configuracion para ldap2 |
+Para `ldap2`, usar `LDAP_NODE=ldap2` en los pasos de certificados y TLS.
 
 ## Scripts
 
 | Script | Uso |
 |---|---|
-| scripts/00-install-openldap.sh | Instala paquetes base de OpenLDAP |
-| scripts/01-load-base-dit.sh | Carga el DIT base |
-| scripts/02-enable-ldaps.sh | Habilita TLS en LDAP |
-| scripts/03-test-ldap-search.sh | Prueba consultas LDAP |
-| scripts/04-test-replication.sh | Prueba replicacion LDAP |
-| scripts/05-backup-ldap.sh | Genera respaldo LDIF del directorio |
+| scripts/00-install-openldap.sh | Instala slapd y ldap-utils |
+| scripts/00-generate-password-hash.sh | Genera un hash SSHA sin guardar la contrasena |
+| scripts/01-configure-slapd.sh | Configura el DIT base con cn=config |
+| scripts/02-install-ldap-certificates.sh | Copia CA, certificado y clave a /etc/ssl/miniidm |
+| scripts/03-enable-ldaps.sh | Aplica la configuracion TLS del nodo |
+| scripts/04-load-base-dit.sh | Carga las entradas LDIF base |
+| scripts/05-test-ldap-search.sh | Ejecuta una consulta LDAP basica |
+| scripts/06-test-replication.sh | Plantilla de consulta para replicacion |
+| scripts/07-backup-ldap.sh | Genera un respaldo LDIF |
 
-## Notas
+## Seguridad
 
-Los scripts estan preparados para ejecutarse en Linux.
+Los LDIF conservan `REPLACE_WITH_HASHED_PASSWORD`. No guardar contrasenas ni hashes reales en Git.
 
-La implementacion real se completara cuando se definan las maquinas virtuales y las credenciales administrativas.
+La clave privada se instala con permisos 0640 y grupo `openldap`. La CA privada nunca se copia al servidor LDAP.
+
+## Alcance actual
+
+La replicacion avanzada queda como plantilla para una VM real. No aplicar `replication-provider.ldif` ni `replication-consumer.ldif` hasta validar conectividad, credenciales y permisos entre ldap1 y ldap2.

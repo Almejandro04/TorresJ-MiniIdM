@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Inicializa la CA raiz ECDSA 
+# inicializacion CA raiz
 
 set -euo pipefail
 

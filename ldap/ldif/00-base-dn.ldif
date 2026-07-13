@@ -1,4 +1,4 @@
-# Base DN de LDAP
+# base DN LDAP
 
 dn: dc=fis,dc=epn,dc=ec
 objectClass: top

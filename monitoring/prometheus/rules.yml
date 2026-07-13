@@ -1,0 +1,18 @@
+groups:
+  - name: miniidm
+    rules:
+      - alert: MiniIdMServiceDown
+        expr: miniidm_service_up == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: MiniIdM service is unavailable
+
+      - alert: MiniIdMLdapQueryFailure
+        expr: miniidm_ldap_query_success == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: LDAP query probe failed

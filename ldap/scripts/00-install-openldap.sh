@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Paquetes base OpenLDAP
+# instalacion OpenLDAP
 
 set -euo pipefail
 

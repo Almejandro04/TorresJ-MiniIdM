@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Configuraciones TLS en LDAP
+# configuracion LDAPS
 
 set -euo pipefail
 
@@ -20,7 +20,7 @@ fi
 LDAP_NODE="$1"
 
 if [ "$LDAP_NODE" != "ldap1" ] && [ "$LDAP_NODE" != "ldap2" ]; then
-    print_error "Nodo invalido. use ldap1 o ldap2"
+    print_error "Nodo invalido. Usar ldap1 o ldap2"
     exit 1
 fi
 

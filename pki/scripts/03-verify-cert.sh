@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Verificar certificado emitido por CA raiz
+# verificacion certificado
 
 set -euo pipefail
 

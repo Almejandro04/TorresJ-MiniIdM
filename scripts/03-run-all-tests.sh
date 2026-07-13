@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Ejecucion de las pruebas generales del proyecto
+# pruebas generales
 
 set -euo pipefail
 
@@ -9,16 +9,11 @@ source "$SCRIPT_DIR/common.sh"
 
 print_title "Pruebas del proyecto"
 
-print_info "Pruebas pendientes:"
-echo "- LDAP search" 
-echo "- LDAPS con openssl s_client"
-echo "- Replicacion LDAP"
-echo "- kinit kerberos"
-echo "- Ticket de servicio Kerberos"
-echo "- Failover de KDC"
-echo "- Failover de LDAP con balanceador"
-echo "- Certificado expirado"
-echo "- Particion de red con iptables"
-echo "- Tiempo de recuperacion"
+if [ "${1:-list}" = "run" ]; then
+    bash "$SCRIPT_DIR/../tests/scripts/run-tests.sh" run
+    print_ok "Pruebas automaticas completadas"
+    exit 0
+fi
 
+bash "$SCRIPT_DIR/../tests/scripts/run-tests.sh" list
 print_ok "Listado de pruebas"

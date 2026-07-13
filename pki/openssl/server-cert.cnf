@@ -1,4 +1,4 @@
-# Configuracion OpenSSL para certificados de servidor ECDSA
+# certificados servidor ECDSA
 
 [ req ]
 default_bits = 256

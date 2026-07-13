@@ -1,4 +1,4 @@
-# master ldap1
+# TLS ldap1
 
 dn: cn=config
 changetype: modify

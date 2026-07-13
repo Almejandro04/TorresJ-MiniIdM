@@ -1,4 +1,12 @@
-.PHONY: help check inventory pki pki-demo-certs ldap kerberos integration web ha monitoring test clean
+.PHONY: help check inventory pki pki-demo-certs ldap ldap-hash ldap-config ldap-config-apply ldap-certs ldap-enable-ldaps ldap-load ldap-search ldap-backup kerberos kerberos-users kerberos-services kerberos-keytabs kerberos-kinit kerberos-propagate kerberos-failover integration integration-users integration-map integration-auth web web-https web-kerberos ha ha-test ha-failover monitoring monitoring-start monitoring-check test test-run clean
+
+LDAP_NODE ?= ldap1
+LDAP_URI ?= ldap://localhost
+KRB_USER ?= jperez
+KDC_SECONDARY ?= kdc2.fis.epn.ec
+INTEGRATION_LDAP_URI ?= ldap://ldap1.fis.epn.ec
+WEB_HOST ?= web.fis.epn.ec
+WEB_URL ?= https://web.fis.epn.ec/
 
 help:
 	@echo "TorresJ-MiniIdM - Comandos disponibles"
@@ -15,6 +23,37 @@ help:
 	@echo "  make test           Ejecutar pruebas"
 	@echo "  make clean          Limpiar archivos temporales"
 	@echo "  make pki-demo-certs Crear certificados demo de servidores"
+	@echo ""
+	@echo "  make ldap-hash      Generar hash SSHA LDAP"
+	@echo "  make ldap-config    Mostrar configuracion base de slapd"
+	@echo "  make ldap-config-apply Aplicar configuracion base de slapd"
+	@echo "  make ldap-certs LDAP_NODE=ldap1 Copiar certificados LDAP"
+	@echo "  make ldap-enable-ldaps LDAP_NODE=ldap1 Aplicar TLS LDAP"
+	@echo "  make ldap-load      Cargar DIT LDAP"
+	@echo "  make ldap-search LDAP_URI=ldap://localhost Consultar LDAP"
+	@echo "  make ldap-backup LDAP_URI=ldap://localhost Respaldar LDAP"
+	@echo "  make kerberos       Mostrar orden de despliegue Kerberos"
+	@echo "  make kerberos-users Crear principals de usuario"
+	@echo "  make kerberos-services Crear principals de servicio"
+	@echo "  make kerberos-keytabs Exportar keytabs de servicio"
+	@echo "  make kerberos-kinit KRB_USER=jperez Probar kinit"
+	@echo "  make kerberos-propagate KDC_SECONDARY=kdc2.fis.epn.ec Propagar KDC"
+	@echo "  make kerberos-failover KRB_USER=jperez Probar failover KDC"
+	@echo "  make integration    Mostrar pruebas LDAP Kerberos"
+	@echo "  make integration-users Validar usuarios LDAP"
+	@echo "  make integration-map Validar mapeo LDAP Kerberos"
+	@echo "  make integration-auth KRB_USER=jperez Probar flujo de autenticacion"
+	@echo "  make web            Mostrar despliegue web TLS Kerberos"
+	@echo "  make web-https WEB_HOST=web.fis.epn.ec Probar TLS web"
+	@echo "  make web-kerberos KRB_USER=jperez Probar Kerberos web"
+	@echo "  make ha             Mostrar despliegue HAProxy LDAP"
+	@echo "  make ha-test         Probar LDAP por balanceador"
+	@echo "  make ha-failover     Probar lectura despues de detener ldap1"
+	@echo "  make monitoring     Mostrar despliegue Prometheus"
+	@echo "  make monitoring-start Configurar Prometheus"
+	@echo "  make monitoring-check Recolectar metricas basicas"
+	@echo "  make test           Listar pruebas de laboratorio"
+	@echo "  make test-run       Ejecutar pruebas automaticas en las VM"
 	@echo ""
 
 check:
@@ -45,35 +84,132 @@ pki:
 pki-demo-certs:
 	@bash pki/scripts/01-create-server-cert.sh ldap1.fis.epn.ec ldap1
 	@bash pki/scripts/01-create-server-cert.sh ldap2.fis.epn.ec ldap2
+	@bash pki/scripts/01-create-server-cert.sh ldap.fis.epn.edu.ec ldap
 	@bash pki/scripts/01-create-server-cert.sh kdc1.fis.epn.ec kdc1
 	@bash pki/scripts/01-create-server-cert.sh kdc2.fis.epn.ec kdc2
 	@bash pki/scripts/01-create-server-cert.sh web.fis.epn.ec web
 
 ldap:
-	@echo "  bash ldap/scripts/00-install-openldap.sh"
-	@echo "  bash ldap/scripts/01-load-base-dit.sh"
-	@echo "  bash ldap/scripts/02-enable-ldaps.sh ldap1"
-	@echo "  bash ldap/scripts/03-test-ldap-search.sh ldap://localhost"
-	@echo "  bash ldap/scripts/04-test-replication.sh"
-	@echo "  bash ldap/scripts/05-backup-ldap.sh ldap://localhost"
+	@echo "Orden LDAP recomendado:"
+	@echo "  1. bash ldap/scripts/00-install-openldap.sh"
+	@echo "  2. sudo make ldap-config-apply"
+	@echo "  3. sudo make ldap-certs LDAP_NODE=ldap1"
+	@echo "  4. sudo make ldap-enable-ldaps LDAP_NODE=ldap1"
+	@echo "  5. Reemplazar hashes en ldap/ldif con make ldap-hash"
+	@echo "  6. make ldap-load"
+	@echo "  7. make ldap-search LDAP_URI=ldap://localhost"
+
+ldap-hash:
+	@bash ldap/scripts/00-generate-password-hash.sh
+
+ldap-config:
+	@bash ldap/scripts/01-configure-slapd.sh
+
+ldap-config-apply:
+	@bash ldap/scripts/01-configure-slapd.sh --apply
+
+ldap-certs:
+	@bash ldap/scripts/02-install-ldap-certificates.sh "$(LDAP_NODE)"
+
+ldap-enable-ldaps:
+	@bash ldap/scripts/03-enable-ldaps.sh "$(LDAP_NODE)"
+
+ldap-load:
+	@bash ldap/scripts/04-load-base-dit.sh
+
+ldap-search:
+	@bash ldap/scripts/05-test-ldap-search.sh "$(LDAP_URI)"
+
+ldap-backup:
+	@bash ldap/scripts/07-backup-ldap.sh "$(LDAP_URI)"
 
 kerberos:
-	@echo "TODO: implementar fase Kerberos."
+	@echo "Orden Kerberos recomendado:"
+	@echo "  1. bash kerberos/scripts/00-install-kerberos.sh"
+	@echo "  2. bash kerberos/scripts/01-init-realm.sh"
+	@echo "  3. sudo make kerberos-users"
+	@echo "  4. sudo make kerberos-services"
+	@echo "  5. sudo make kerberos-keytabs"
+	@echo "  6. Configurar kdc2 con kerberos/scripts/06-configure-secondary-kdc.sh"
+	@echo "  7. make kerberos-propagate"
+
+kerberos-users:
+	@bash kerberos/scripts/02-create-user-principals.sh
+
+kerberos-services:
+	@bash kerberos/scripts/03-create-service-principals.sh
+
+kerberos-keytabs:
+	@bash kerberos/scripts/04-export-keytabs.sh
+
+kerberos-kinit:
+	@bash kerberos/scripts/05-test-kinit.sh "$(KRB_USER)"
+
+kerberos-propagate:
+	@bash kerberos/scripts/07-propagate-kdc-db.sh "$(KDC_SECONDARY)"
+
+kerberos-failover:
+	@bash kerberos/scripts/08-test-kdc-failover.sh "$(KRB_USER)"
 
 integration:
-	@echo "TODO: implementar fase Integracion LDAP-Kerberos."
+	@echo "Pruebas de integracion LDAP Kerberos:"
+	@echo "  make integration-users"
+	@echo "  make integration-map"
+	@echo "  make integration-auth KRB_USER=jperez"
+
+integration-users:
+	@bash integration/scripts/00-check-ldap-kerberos-users.sh "$(INTEGRATION_LDAP_URI)"
+
+integration-map:
+	@bash integration/scripts/01-map-users.sh "$(INTEGRATION_LDAP_URI)"
+
+integration-auth:
+	@bash integration/scripts/02-test-auth-flow.sh "$(KRB_USER)" "$(INTEGRATION_LDAP_URI)"
 
 web:
-	@echo "TODO: implementar fase Web."
+	@echo "Despliegue web TLS Kerberos:"
+	@echo "  1. sudo bash web/scripts/00-install-web-deps.sh"
+	@echo "  2. sudo bash web/scripts/01-start-web.sh"
+	@echo "  3. make web-https"
+	@echo "  4. make web-kerberos KRB_USER=jperez"
+
+web-https:
+	@bash web/scripts/02-test-https.sh "$(WEB_HOST)"
+
+web-kerberos:
+	@bash web/scripts/03-test-kerberos-web.sh "$(KRB_USER)" "$(WEB_URL)"
 
 ha:
-	@echo "TODO: implementar fase Alta Disponibilidad."
+	@echo "Despliegue HAProxy LDAP:"
+	@echo "  1. sudo bash ha/scripts/00-install-haproxy.sh"
+	@echo "  2. make pki-demo-certs"
+	@echo "  3. sudo bash ha/scripts/01-configure-ldap-lb.sh"
+	@echo "  4. make ha-test"
+	@echo "  5. Detener slapd en ldap1 y ejecutar make ha-failover"
+
+ha-test:
+	@bash ha/scripts/02-test-ldap-lb.sh
+
+ha-failover:
+	@bash ha/scripts/03-test-ldap-failover.sh
 
 monitoring:
-	@echo "TODO: implementar fase Monitoreo."
+	@echo "Despliegue Prometheus:"
+	@echo "  1. sudo bash monitoring/scripts/00-install-monitoring.sh"
+	@echo "  2. sudo make monitoring-start"
+	@echo "  3. sudo make monitoring-check"
+
+monitoring-start:
+	@bash monitoring/scripts/01-start-prometheus.sh
+
+monitoring-check:
+	@bash monitoring/scripts/02-check-services.sh
 
 test:
 	@bash scripts/03-run-all-tests.sh
+
+test-run:
+	@bash scripts/03-run-all-tests.sh run
 
 clean:
 	@bash scripts/02-cleanup-lab.sh

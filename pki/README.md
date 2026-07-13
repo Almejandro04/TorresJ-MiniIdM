@@ -25,12 +25,12 @@ La PKI se usara para emitir certificados TLS para:
 
 ```text
 pki/
-├── openssl/
-├── scripts/
-├── ca/
-├── certs/
-├── private/
-└── csr/
+|-- openssl/
+|-- scripts/
+|-- ca/
+|-- certs/
+|-- private/
+`-- csr/
 ```
 
 ## Archivos importantes

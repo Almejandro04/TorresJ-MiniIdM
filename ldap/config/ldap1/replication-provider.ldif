@@ -1,4 +1,4 @@
-# replicacion LDAP en ldap1
+# proveedor replicacion ldap1
 
 dn: olcDatabase={1}mdb,cn=config
 changetype: modify

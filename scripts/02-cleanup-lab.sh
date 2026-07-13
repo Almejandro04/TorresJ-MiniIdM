@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Limpiar archivos temprales generados durante pruebas
+# limpieza laboratorio
 
 set -euo pipefail
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Load del DIT base en LDAP
+# carga DIT LDAP
 
 set -euo pipefail
 
@@ -12,7 +12,13 @@ print_title "Carga del DIT base LDAP"
 
 LDAP_ADMIN_DN="cn=admin,dc=fis,dc=epn,dc=ec"
 
-print_info "Usar contraseña admin"
+if grep -R -E "REPLACE_WITH|PLACEHOLDER" "$PROJECT_DIR/ldap/ldif" >/dev/null; then
+    print_error "Reemplazar los placeholders de contrasena antes de cargar el DIT"
+    print_info "Generar un hash con: make ldap-hash"
+    exit 1
+fi
+
+print_info "Se solicitara la contrasena del administrador LDAP"
 
 ldapadd -x -D "$LDAP_ADMIN_DN" -W -f "$PROJECT_DIR/ldap/ldif/00-base-dn.ldif"
 ldapadd -x -D "$LDAP_ADMIN_DN" -W -f "$PROJECT_DIR/ldap/ldif/01-organizational-units.ldif"

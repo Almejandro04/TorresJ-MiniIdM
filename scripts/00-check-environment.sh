@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Verificar herramientas basicas
+# verificacion entorno
 
 set -euo pipefail
 

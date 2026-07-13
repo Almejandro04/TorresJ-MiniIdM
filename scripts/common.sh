@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-# Funciones comunes para el proyecto MiniIdM
-# El archivo sera usado por otros scripts del proyecto
+# funciones comunes
 
 set -euo pipefail
 
@@ -68,4 +67,3 @@ confirm_step() {
     local message="$1"
     print_info "$message"
 }
-

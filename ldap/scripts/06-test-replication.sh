@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Prueba de lectura en master y replica
+# prueba lectura replicacion
 
 set -euo pipefail
 

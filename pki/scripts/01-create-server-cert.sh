@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Certificado de servidor firmado por la CA raiz
+# certificado servidor
 
 set -euo pipefail
 
@@ -77,4 +77,3 @@ print_ok "Creacion de certificado correcta"
 print_info "Clave privada: $SERVER_KEY"
 print_info "CSR: $SERVER_CSR"
 print_info "Certificado: $SERVER_CERT"
-

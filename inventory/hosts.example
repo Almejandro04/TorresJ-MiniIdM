@@ -1,17 +1,13 @@
-# Archivo de ejemplo para /etc/hosts
-# Este archivo NO se copia automaticamente todavia.
-# Se usara como referencia cuando se definan las maquinas virtuales.
+# ejemplo /etc/hosts
 
-# Opcion base con cuatro nodos logicos separados
+# topologia cuatro nodos
 
 192.168.56.10 idm1.fis.epn.ec idm1 ldap1.fis.epn.ec ldap1 kdc1.fis.epn.ec kdc1 ca.fis.epn.ec ca
 192.168.56.11 idm2.fis.epn.ec idm2 ldap2.fis.epn.ec ldap2 kdc2.fis.epn.ec kdc2
 192.168.56.12 edge.fis.epn.ec edge ldap.fis.epn.edu.ec web.fis.epn.ec
 192.168.56.13 client.fis.epn.ec client
 
-# Opcion minima con dos maquinas virtuales
-# VM1: idm1
-# VM2: idm2
+# topologia dos nodos
 
 # 192.168.56.10 idm1.fis.epn.ec idm1 ldap1.fis.epn.ec ldap1 kdc1.fis.epn.ec kdc1 ca.fis.epn.ec ca ldap.fis.epn.edu.ec web.fis.epn.ec
 # 192.168.56.11 idm2.fis.epn.ec idm2 ldap2.fis.epn.ec ldap2 kdc2.fis.epn.ec kdc2

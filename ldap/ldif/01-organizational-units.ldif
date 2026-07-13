@@ -1,4 +1,4 @@
-# Unidades organizacionales principales
+# unidades organizacionales
 
 dn: ou=users,dc=fis,dc=epn,dc=ec
 objectClass: top

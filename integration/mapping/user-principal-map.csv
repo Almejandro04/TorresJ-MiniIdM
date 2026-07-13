@@ -1,0 +1,4 @@
+uid,ldap_dn,kerberos_principal
+jperez,"uid=jperez,ou=users,dc=fis,dc=epn,dc=ec",jperez@FIS.EPN.EC
+malvan,"uid=malvan,ou=users,dc=fis,dc=epn,dc=ec",malvan@FIS.EPN.EC
+dnoboa,"uid=dnoboa,ou=users,dc=fis,dc=epn,dc=ec",dnoboa@FIS.EPN.EC

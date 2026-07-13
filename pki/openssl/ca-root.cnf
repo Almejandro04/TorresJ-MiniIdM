@@ -1,5 +1,4 @@
-# Configuracion OpenSSL de CA raiz ECDSA
-# Proyecto: TorresJ-MiniIdM
+# CA raiz ECDSA
 
 [ ca ]
 default_ca = CA_default

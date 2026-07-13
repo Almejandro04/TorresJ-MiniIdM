@@ -1,4 +1,4 @@
-# Grupos Base
+# grupos base
 
 dn: cn=estudiantes,ou=groups,dc=fis,dc=epn,dc=ec
 objectClass: top

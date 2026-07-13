@@ -1,4 +1,4 @@
-# Configuracion OpenSSL para certificado expirado de prueba
+# certificado expirado
 
 [ req ]
 default_bits = 256

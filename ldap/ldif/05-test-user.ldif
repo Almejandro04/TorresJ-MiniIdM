@@ -1,4 +1,4 @@
-# Usuario adicional prueba replicacion
+# usuario prueba replicacion
 
 dn: uid=testreplica,ou=users,dc=fis,dc=epn,dc=ec
 objectClass: top
@@ -14,4 +14,4 @@ uidNumber: 20099
 gidNumber: 10001
 homeDirectory: /home/testreplica
 loginShell: /bin/bash
-userPassword: {SSHA}PLACEHOLDER_PASSWORD_HASH
+userPassword: REPLACE_WITH_HASHED_PASSWORD

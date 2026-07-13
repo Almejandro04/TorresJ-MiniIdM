@@ -1,0 +1,28 @@
+<VirtualHost *:443>
+    ServerName web.fis.epn.ec
+    DocumentRoot /var/www/miniidm
+
+    SSLEngine on
+    SSLCertificateFile /etc/ssl/miniidm/web.fis.epn.ec.crt
+    SSLCertificateKeyFile /etc/ssl/miniidm/web.fis.epn.ec.key
+    SSLCACertificateFile /etc/ssl/miniidm/ca-root.crt
+
+    <Directory /var/www/miniidm>
+        Options -Indexes
+        AllowOverride None
+        Require all granted
+    </Directory>
+
+    <Location />
+        AuthType GSSAPI
+        AuthName "MiniIdM Kerberos"
+        GssapiSSLonly On
+        GssapiLocalName On
+        GssapiAcceptorName HTTP
+        GssapiCredStore keytab:/etc/apache2/miniidm/web.keytab
+        Require valid-user
+    </Location>
+
+    ErrorLog ${APACHE_LOG_DIR}/miniidm-error.log
+    CustomLog ${APACHE_LOG_DIR}/miniidm-access.log combined
+</VirtualHost>

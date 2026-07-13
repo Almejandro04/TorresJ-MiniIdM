@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-# Configuracion del host
-# falta agregar al configuracion de las maquinas virtuales
+# configuracion hosts
 
 set -euo pipefail
 
