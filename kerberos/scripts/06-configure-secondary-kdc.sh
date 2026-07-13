@@ -29,9 +29,20 @@ install -m 0644 "$PROJECT_DIR/kerberos/config/kdc.conf" /etc/krb5kdc/kdc.conf
 install -m 0644 "$PROJECT_DIR/kerberos/config/kadm5.acl" /etc/krb5kdc/kadm5.acl
 install -m 0644 "$PROJECT_DIR/kerberos/config/kpropd.acl" "$KPROPD_ACL_FILE"
 
+ensure_kpropd_running() {
+    systemctl enable --now krb5-kpropd
+
+    if ! ss -ltnH 'sport = :754' | grep -q .; then
+        print_error "krb5-kpropd no esta escuchando en el puerto TCP 754"
+        exit 1
+    fi
+}
+
 if [ -f "$DATABASE_FILE" ]; then
     print_info "La base Kerberos ya existe en idm2; no se modifico ni se reinicializo"
-    print_ok "Configuracion del secundario actualizada"
+    require_keytab_principal "$KEYTAB_FILE" "$SECONDARY_HOST_PRINCIPAL"
+    ensure_kpropd_running
+    print_ok "krb5-kpropd esta habilitado y escucha en TCP 754"
     exit 0
 fi
 
@@ -48,12 +59,7 @@ check_file_exists "$KPROPD_ACL_FILE"
 
 print_info "Manteniendo krb5-kdc detenido hasta recibir la primera propagacion"
 systemctl stop krb5-kdc
-systemctl enable --now krb5-kpropd
-
-if ! ss -ltnH 'sport = :754' | grep -q .; then
-    print_error "krb5-kpropd no esta escuchando en el puerto TCP 754"
-    exit 1
-fi
+ensure_kpropd_running
 
 print_info "kpropd escucha en TCP 754; reciba ahora la primera base desde idm1"
 print_info "Despues de verificar la base con kadmin.local, habilite krb5-kdc"
