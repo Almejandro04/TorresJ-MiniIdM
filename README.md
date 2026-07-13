@@ -52,6 +52,8 @@ results/     CSV evidence and report material
 
 Generated private keys, certificates, CSR files, CA state, keytabs and raw results are ignored by Git. Do not commit passwords, hashes, keytabs or private keys.
 
+For the Kerberos secondary KDC, the service aliases `kdc1`/`kdc2` and the real host names `idm1`/`idm2` both require host principals. The secondary is bootstrapped only through a protected `kdb5_util dump` and `kprop`; do not run the realm-initialization script on idm2 or commit its stash. See [`kerberos/README.md`](kerberos/README.md) for the required order on Ubuntu Server 26.04.
+
 If generated keys were committed before this rule, remove them from the Git index and rotate them before publishing the repository.
 
 ## Final report

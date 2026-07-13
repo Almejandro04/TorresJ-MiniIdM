@@ -143,15 +143,12 @@ ldap-backup:
 
 kerberos:
 	@echo "Orden Kerberos recomendado:"
-	@echo "  1. bash kerberos/scripts/00-install-kerberos.sh"
-	@echo "  2. bash kerberos/scripts/01-init-realm.sh"
-	@echo "  3. sudo make kerberos-users"
-	@echo "  4. sudo make kerberos-services"
-	@echo "  5. sudo make kerberos-keytabs"
-	@echo "  6. sudo make kerberos-host-keytabs"
-	@echo "  7. Configurar kdc2 con kerberos/scripts/06-configure-secondary-kdc.sh"
-	@echo "  8. sudo make kerberos-check-propagation"
-	@echo "  9. sudo make kerberos-propagate"
+	@echo "  idm1: instalar, inicializar el realm y exportar los keytabs host"
+	@echo "  idm2: instalar, copiar idm2.keytab y stash, y configurar kpropd"
+	@echo "  No ejecutar kerberos/scripts/01-init-realm.sh en idm2"
+	@echo "  1. sudo make kerberos-check-propagation"
+	@echo "  2. sudo make kerberos-propagate KDC_SECONDARY=kdc2.fis.epn.ec"
+	@echo "  3. En idm2, verificar la base e iniciar krb5-kdc"
 
 kerberos-users:
 	@bash kerberos/scripts/02-create-user-principals.sh

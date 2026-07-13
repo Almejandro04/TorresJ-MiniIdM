@@ -16,6 +16,7 @@ print_title "Exportacion de keytabs"
 
 require_root
 require_command kadmin.local
+require_command mktemp
 check_file_exists "$SERVICES_FILE"
 
 install -d -m 0700 "$KEYTAB_DIR"
@@ -31,8 +32,7 @@ while IFS= read -r service_name; do
     principal="$service_name@$REALM"
 
     print_info "Exportando keytab: $keytab_file"
-    kadmin.local -q "ktadd -k $keytab_file $principal"
-    chmod 0600 "$keytab_file"
+    export_keytab_principals "$keytab_file" "$principal"
 done < "$SERVICES_FILE"
 
 print_ok "Keytabs exportados"

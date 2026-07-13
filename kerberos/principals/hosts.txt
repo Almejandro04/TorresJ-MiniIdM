@@ -1,2 +1,7 @@
+# Alias de servicio y FQDN real de idm1 (KDC primario)
 host/kdc1.fis.epn.ec
+host/idm1.fis.epn.ec
+
+# Alias de servicio y FQDN real de idm2 (KDC secundario)
 host/kdc2.fis.epn.ec
+host/idm2.fis.epn.ec

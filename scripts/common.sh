@@ -54,6 +54,53 @@ check_file_exists() {
     fi
 }
 
+check_file_nonempty() {
+    local file_path="$1"
+
+    check_file_exists "$file_path"
+    if [ ! -s "$file_path" ]; then
+        print_error "El archivo esta vacio: $file_path"
+        exit 1
+    fi
+}
+
+require_keytab_principal() {
+    local keytab_path="$1"
+    local principal="$2"
+
+    check_file_exists "$keytab_path"
+    require_command klist
+
+    if ! klist -k "$keytab_path" 2>/dev/null | grep -Fq -- "$principal"; then
+        print_error "Falta $principal en $keytab_path"
+        exit 1
+    fi
+}
+
+export_keytab_principals() {
+    local keytab_path="$1"
+    shift
+
+    if [ "$#" -eq 0 ]; then
+        print_error "No se indicaron principals para exportar a $keytab_path"
+        return 1
+    fi
+
+    local keytab_dir temporary_keytab principal
+    keytab_dir="$(dirname "$keytab_path")"
+    temporary_keytab="$(mktemp "$keytab_dir/.keytab.XXXXXX")"
+
+    for principal in "$@"; do
+        if ! kadmin.local -q "ktadd -norandkey -k $temporary_keytab $principal"; then
+            rm -f "$temporary_keytab"
+            return 1
+        fi
+    done
+
+    chmod 0600 "$temporary_keytab"
+    mv -f "$temporary_keytab" "$keytab_path"
+}
+
 check_dir_exists() {
     local dir_path="$1"
     

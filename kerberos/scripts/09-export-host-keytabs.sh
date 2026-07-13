@@ -16,24 +16,37 @@ print_title "Exportacion keytabs host"
 
 require_root
 require_command kadmin.local
+require_command mktemp
 check_file_exists "$HOSTS_FILE"
 
 install -d -m 0700 "$KEYTAB_DIR"
 
-while IFS= read -r host_name; do
-    [ -z "$host_name" ] && continue
-    case "$host_name" in
-        \#*) continue ;;
-    esac
+required_hosts=(
+    "host/kdc1.fis.epn.ec"
+    "host/idm1.fis.epn.ec"
+    "host/kdc2.fis.epn.ec"
+    "host/idm2.fis.epn.ec"
+)
 
-    safe_name="${host_name//\//_}"
-    keytab_file="$KEYTAB_DIR/$safe_name.keytab"
-    principal="$host_name@$REALM"
+for host_name in "${required_hosts[@]}"; do
+    if ! grep -Fqx -- "$host_name" "$HOSTS_FILE"; then
+        print_error "Falta $host_name en $HOSTS_FILE"
+        exit 1
+    fi
+done
 
-    print_info "Exportando keytab: $keytab_file"
-    kadmin.local -q "ktadd -k $keytab_file $principal"
-    chmod 0600 "$keytab_file"
-done < "$HOSTS_FILE"
+idm1_keytab="$KEYTAB_DIR/idm1.keytab"
+idm2_keytab="$KEYTAB_DIR/idm2.keytab"
+
+print_info "Exportando keytab para idm1: $idm1_keytab"
+export_keytab_principals "$idm1_keytab" \
+    "host/kdc1.fis.epn.ec@$REALM" \
+    "host/idm1.fis.epn.ec@$REALM"
+
+print_info "Exportando keytab para idm2: $idm2_keytab"
+export_keytab_principals "$idm2_keytab" \
+    "host/kdc2.fis.epn.ec@$REALM" \
+    "host/idm2.fis.epn.ec@$REALM"
 
 print_ok "Keytabs host exportados"
-print_info "Instalar host_kdc1 en kdc1 y host_kdc2 en kdc2 como /etc/krb5.keytab"
+print_info "Instalar idm1.keytab en idm1 e idm2.keytab en idm2 como /etc/krb5.keytab"

@@ -13,8 +13,8 @@ print_title "Instalacion MIT Kerberos"
 require_root
 require_command apt-get
 
-print_info "Instalando KDC, administrador y herramientas cliente"
+print_info "Instalando KDC, kpropd, administrador y herramientas cliente"
 DEBIAN_FRONTEND=noninteractive apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y krb5-kdc krb5-admin-server krb5-user
+DEBIAN_FRONTEND=noninteractive apt-get install -y krb5-kdc krb5-kpropd krb5-admin-server krb5-user
 
 print_ok "Paquetes MIT Kerberos instalados"
