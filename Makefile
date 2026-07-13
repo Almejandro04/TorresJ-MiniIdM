@@ -61,6 +61,7 @@ help:
 	@echo "  make test-run       Ejecutar pruebas automaticas en las VM"
 	@echo ""
 
+
 check:
 	@echo "Verificando estructura basica del proyecto..."
 	@test -d docs
