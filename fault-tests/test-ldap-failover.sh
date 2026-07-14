@@ -81,7 +81,7 @@ restore_slapd() {
 }
 
 trap restore_slapd EXIT
-initialize_csv "$RESULT_FILE" "timestamp,failover_ms,restore_ms,ldap_direct_after,result"
+initialize_csv "$RESULT_FILE" "timestamp,first_success_after_stop_ms,restore_ms,ldap_direct_after,result"
 
 print_info "Deteniendo slapd; la restauracion esta protegida por trap"
 systemctl stop slapd
@@ -94,13 +94,13 @@ fi
 start_ms="$(monotonic_milliseconds)"
 deadline_ms="$((start_ms + FAILOVER_TIMEOUT_SECONDS * 1000))"
 result="failover_timeout"
-failover_ms="$((FAILOVER_TIMEOUT_SECONDS * 1000))"
+first_success_after_stop_ms="$((FAILOVER_TIMEOUT_SECONDS * 1000))"
 
 while [ "$(monotonic_milliseconds)" -lt "$deadline_ms" ]; do
     remaining_ms="$((deadline_ms - $(monotonic_milliseconds)))"
     remaining_seconds="$(( (remaining_ms + 999) / 1000 ))"
     if ldap_check "$LDAP_URI" "$remaining_seconds"; then
-        failover_ms="$(( $(monotonic_milliseconds) - start_ms ))"
+        first_success_after_stop_ms="$(( $(monotonic_milliseconds) - start_ms ))"
         result="ok"
         break
     fi
@@ -112,7 +112,7 @@ if restore_slapd && systemctl is-active --quiet slapd; then
     restore_ms="$(( $(monotonic_milliseconds) - restore_start_ms ))"
 else
     restore_ms="$(( $(monotonic_milliseconds) - restore_start_ms ))"
-    append_csv_row "$RESULT_FILE" "$(date -Iseconds)" "$failover_ms" "$restore_ms" "0" "restore_failed"
+    append_csv_row "$RESULT_FILE" "$(date -Iseconds)" "$first_success_after_stop_ms" "$restore_ms" "0" "restore_failed"
     exit 1
 fi
 
@@ -128,10 +128,10 @@ elif [ "$ldap_direct_after" -ne 1 ]; then
     result="direct_ldap_restore_failed"
 fi
 
-append_csv_row "$RESULT_FILE" "$(date -Iseconds)" "$failover_ms" "$restore_ms" "$ldap_direct_after" "$result"
+append_csv_row "$RESULT_FILE" "$(date -Iseconds)" "$first_success_after_stop_ms" "$restore_ms" "$ldap_direct_after" "$result"
 if [ "$result" != "ok" ]; then
     print_error "La prueba LDAP termino con $result"
     exit 1
 fi
 
-print_ok "Failover LDAP en $failover_ms ms; restauracion en $restore_ms ms"
+print_ok "Primera respuesta LDAP exitosa despues de detener ldap1: $first_success_after_stop_ms ms; restauracion en $restore_ms ms"

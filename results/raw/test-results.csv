@@ -1,7 +1,0 @@
-timestamp,test_name,target,status,latency_ms,notes
-2026-07-12T19:25:07-05:00,ldap-search,ldap1.fis.epn.ec,SKIPPED,0,"DNS no disponible"
-2026-07-12T19:25:07-05:00,ldaps,ldap1.fis.epn.ec,SKIPPED,0,"DNS no disponible"
-2026-07-12T19:25:07-05:00,kerberos-kinit,kdc1.fis.epn.ec,SKIPPED,0,"DNS no disponible"
-2026-07-12T19:25:07-05:00,kerberos-service-ticket,kdc1.fis.epn.ec,SKIPPED,0,"DNS no disponible"
-2026-07-12T19:25:07-05:00,web-tls,web.fis.epn.ec,SKIPPED,0,"DNS no disponible"
-2026-07-12T19:25:07-05:00,haproxy-throughput,ldap.fis.epn.edu.ec,SKIPPED,0,"DNS no disponible"

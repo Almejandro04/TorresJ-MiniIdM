@@ -28,7 +28,7 @@ index cn,sn eq
 index entryCSN,entryUUID eq
 
 syncrepl rid=002
-    provider=ldap://ldap1.fis.epn.ec
+    provider=ldaps://ldap1.fis.epn.ec:636
     bindmethod=simple
     binddn="uid=svc-replica,ou=services,dc=fis,dc=epn,dc=ec"
     credentials=REPLACE_WITH_PASSWORD
@@ -36,8 +36,9 @@ syncrepl rid=002
     type=refreshAndPersist
     retry="5 5 300 +"
     timeout=1
+    tls_reqcert=demand
 
-updateref ldap://ldap1.fis.epn.ec
+updateref ldaps://ldap1.fis.epn.ec:636
     
 access to attrs=userPassword
     by self write

@@ -17,11 +17,21 @@ The project includes OpenLDAP, MIT Kerberos, an ECDSA PKI, Apache TLS Kerberos, 
 
 ## Final two-VM topology
 
-The deployed implementation uses two physical VMs, not five nodes: `idm1`
-(`192.168.56.10`) hosts the CA, `ldap1`, `kdc1`, HAProxy, Apache and
-Prometheus; `idm2` (`192.168.56.11`) hosts `ldap2`, `kdc2` and the test
-client. The logical LDAP/KDC names resolve to their respective idm node. There
-is no `edge` VM in the final implementation.
+La implementacion desplegada usa solamente dos VM: `idm1`
+(`192.168.56.10`) aloja la CA raiz ECDSA, `ldap1`, `kdc1`, Apache, HAProxy,
+Prometheus y node exporter; `idm2` (`192.168.56.11`) aloja `ldap2`, `kdc2`,
+el cliente de pruebas y node exporter. `ldap1`, `ldap2`, `kdc1` y `kdc2` son
+nombres y roles logicos que resuelven a su VM correspondiente.
+
+HAProxy, Apache y Prometheus existen solo en idm1. LDAP tiene un maestro de
+escritura (`ldap1`) y una replica (`ldap2`): HAProxy usa `ldap1` normalmente y
+activa `ldap2` como respaldo para lecturas cuando el maestro no responde. No
+hay alta disponibilidad de escritura ni LDAP multimaster. Kerberos puede
+emitir tickets desde `kdc2` cuando `kdc1` falla.
+
+No existen VIP, Keepalived, un tercer nodo, un segundo HAProxy ni un segundo
+Apache. La alta disponibilidad se limita a LDAP y Kerberos; la perdida
+completa de idm1 no esta cubierta.
 
 ## Quick review
 
@@ -67,3 +77,8 @@ If generated keys were committed before this rule, remove them from the Git inde
 ## Final report
 
 The final individual report must be a two page PDF named `TorresJ-MiniIdM.pdf` and must include the GitHub URL and external assistance disclosure.
+
+## Resultados reales
+
+Las mediciones finales ejecutadas el 14 de julio de 2026 estan resumidas en
+[RESULTADOS.md](RESULTADOS.md).

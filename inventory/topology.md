@@ -30,7 +30,9 @@ El proyecto debe incluir:
 | idm2 | 192.168.56.11 | LDAP Replica, KDC Secundario, Cliente de pruebas |
 
 No existe un nodo `edge`: HAProxy comparte idm1 con slapd y por eso expone
-LDAPS en 1636, mientras los backends ldap1 y ldap2 mantienen 636.
+LDAPS en 1636, mientras los backends ldap1 y ldap2 mantienen 636. HAProxy,
+Apache y Prometheus solo se ejecutan en idm1. No existen VIP, Keepalived ni un
+tercer nodo; la perdida completa de idm1 no esta cubierta.
 
 ## Flujo de comunicacion esperado
 
@@ -47,9 +49,9 @@ Cliente
   v
 Balanceador LDAP
   |
-  |------> ldap1
+  |------> ldap1 (principal de escritura)
   |
-  |------> ldap2
+  `------> ldap2 (respaldo de lectura)
 
 Cliente
   |

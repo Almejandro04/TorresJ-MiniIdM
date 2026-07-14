@@ -1,9 +1,14 @@
 # Monitoreo
 
 El proyecto usa Prometheus y node exporter. La implementacion final usa dos VM
-fisicas: idm1 (`192.168.56.10`) aloja CA, ldap1, kdc1, HAProxy, Apache y
-Prometheus; idm2 (`192.168.56.11`) aloja ldap2, kdc2 y el cliente. Los nombres
-logicos ldap1/kdc1 apuntan a idm1 y ldap2/kdc2 a idm2; no existe un nodo edge.
+fisicas: idm1 (`192.168.56.10`) aloja CA ECDSA, ldap1, kdc1, HAProxy, Apache,
+Prometheus y node exporter; idm2 (`192.168.56.11`) aloja ldap2, kdc2, el
+cliente y node exporter. Los nombres logicos ldap1/kdc1 apuntan a idm1 y
+ldap2/kdc2 a idm2.
+
+Prometheus se ejecuta solo en idm1. No existen VIP, Keepalived, un tercer
+nodo, un segundo HAProxy ni un segundo Apache; la perdida completa de idm1 no
+esta cubierta. La alta disponibilidad se limita a LDAP y Kerberos.
 
 Prometheus recolecta CPU y memoria desde node exporter en ambas IP fisicas, no
 una vez por cada rol logico.

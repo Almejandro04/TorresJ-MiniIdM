@@ -6,9 +6,19 @@ los backends `ldap1` (idm1) y `ldap2` (idm2), ambos en su puerto interno 636.
 El puerto externo 636 solo es viable cuando HAProxy tiene un nodo o IP
 independiente; en esta topologia lo utiliza slapd en idm1.
 
-La implementacion final tiene dos VM: idm1 aloja ldap1, kdc1, HAProxy, Apache,
-Prometheus y la CA; idm2 aloja ldap2, kdc2 y el cliente. No existe un nodo
-edge.
+La implementacion final tiene dos VM: idm1 (`192.168.56.10`) aloja la CA
+ECDSA, ldap1, kdc1, HAProxy, Apache, Prometheus y node exporter; idm2
+(`192.168.56.11`) aloja ldap2, kdc2, el cliente y node exporter. ldap1,
+ldap2, kdc1 y kdc2 son roles logicos.
+
+HAProxy envia las conexiones a ldap1 en condiciones normales. ldap2 esta
+configurado como `backup`, por lo que solo recibe conexiones cuando ldap1 deja
+de responder. El failover conserva principalmente consultas de lectura: ldap1
+sigue siendo el unico maestro de escritura y no hay LDAP multimaster ni alta
+disponibilidad de escritura.
+
+No existen VIP, Keepalived, un tercer nodo, un segundo HAProxy ni un segundo
+Apache. La perdida completa de idm1 no esta cubierta.
 
 ## Despliegue
 
@@ -19,10 +29,13 @@ sudo bash ha/scripts/01-configure-ldap-lb.sh
 make ha-test LDAP_LB_URI=ldaps://ldap.fis.epn.edu.ec:1636
 ```
 
-Para la prueba de failover, ejecutar `sudo systemctl stop slapd` en ldap1 y luego:
+Para la prueba controlada de failover desde idm1, usar el script protegido por
+`--apply`; detiene y restaura slapd mediante un trap:
 
 ```text
-make ha-failover LDAP_LB_URI=ldaps://ldap.fis.epn.edu.ec:1636
+sudo bash fault-tests/test-ldap-failover.sh --apply
 ```
 
-La operacion de escritura sigue dirigida al LDAP master. El balanceador solo ofrece lecturas disponibles por los dos backends.
+La metrica registrada es el tiempo hasta la primera respuesta LDAP exitosa
+despues de detener ldap1; no representa por si sola la estabilidad total del
+balanceador.

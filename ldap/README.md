@@ -35,8 +35,8 @@ Ejecutar estos pasos en cada VM LDAP. Los comandos que cambian el sistema requie
 7. Reemplazar REPLACE_WITH_HASHED_PASSWORD en los LDIF
 8. make ldap-load
 9. sudo make ldap-syncprov en ldap1
-10. Reemplazar credentials=REPLACE_WITH_PASSWORD en ldap2
-11. sudo make ldap-replication-consumer en ldap2
+10. En ldap2, confirmar que la CA y LDAPS estan configurados
+11. sudo make ldap-replication-consumer (solicita la credencial sin guardarla)
 12. make ldap-search LDAP_URI=ldap://localhost
 ```
 
@@ -67,4 +67,7 @@ La clave privada se instala con permisos 0640 y grupo `openldap`. La CA privada 
 
 ## Alcance actual
 
-Aplicar syncprov solo en ldap1. Aplicar el consumidor solo en ldap2 despues de reemplazar la credencial de `svc-replica` fuera de Git.
+Aplicar syncprov solo en ldap1. El consumidor se aplica solo en ldap2 mediante
+LDAPS hacia ldap1. La plantilla conserva `REPLACE_WITH_PASSWORD`: el script
+solicita la credencial de `svc-replica` y la usa exclusivamente en un archivo
+temporal que elimina al terminar.

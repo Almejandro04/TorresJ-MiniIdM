@@ -1,3 +1,18 @@
+# Credenciales, claves y estado sensible que nunca deben versionarse.
+*.key
+*.key.pem
+*.keytab
+*.p12
+*.pfx
+*.dump
+*.secret
+*.password
+principal*
+!kerberos/principals/
+!kerberos/principals/**
+stash
+backups/
+
 pki/private/*
 !pki/private/.gitkeep
 
@@ -17,7 +32,6 @@ kerberos/principals/keytabs/*
 
 results/raw/*
 !results/raw/.gitkeep
-!results/raw/test-results.csv
 
 results/experiments/*
 !results/experiments/.gitkeep
