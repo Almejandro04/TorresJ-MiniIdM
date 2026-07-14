@@ -59,12 +59,15 @@ Retardo extremo a extremo observado.
 
 | Medida | Resultado |
 |---|---:|
-| Primera respuesta exitosa despues de detener el maestro | 110 ms |
-| Tiempo de restauracion | 60 ms |
+| Primera respuesta exitosa después de detener el maestro | 6560 ms |
+| Tiempo de restauración | 50 ms |
 | Resultado | correcto |
 
-Tiempo hasta la primera respuesta LDAP exitosa despues de detener ldap1. Los
-110 ms no representan el tiempo de estabilidad total del balanceador.
+El valor de 6560 ms corresponde al tiempo hasta obtener la primera respuesta
+LDAP exitosa después de detener `ldap1`. Esta medición incluye el tiempo que
+HAProxy necesita para detectar la caída del servidor principal y activar
+`ldap2` como servidor de respaldo. No representa el tiempo de estabilidad
+total del balanceador.
 
 ## Failover Kerberos
 
