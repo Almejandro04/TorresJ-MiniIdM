@@ -13,6 +13,12 @@ host/kdc2.fis.epn.ec@FIS.EPN.EC
 host/idm2.fis.epn.ec@FIS.EPN.EC
 ```
 
+Para los principals de servicio, `dns_canonicalize_hostname = false` y
+`rdns = false` evitan que un cliente transforme
+`HTTP/web.fis.epn.ec@FIS.EPN.EC` en un nombre de otro alias, como
+`HTTP/ldap1.fis.epn.ec@FIS.EPN.EC`. Esto no cambia el realm ni los KDC
+configurados.
+
 ## Principals
 
 Usuarios:

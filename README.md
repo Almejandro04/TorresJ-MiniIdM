@@ -15,6 +15,14 @@ Web service: web.fis.epn.ec
 
 The project includes OpenLDAP, MIT Kerberos, an ECDSA PKI, Apache TLS Kerberos, HAProxy, Prometheus and fault tests.
 
+## Final two-VM topology
+
+The deployed implementation uses two physical VMs, not five nodes: `idm1`
+(`192.168.56.10`) hosts the CA, `ldap1`, `kdc1`, HAProxy, Apache and
+Prometheus; `idm2` (`192.168.56.11`) hosts `ldap2`, `kdc2` and the test
+client. The logical LDAP/KDC names resolve to their respective idm node. There
+is no `edge` VM in the final implementation.
+
 ## Quick review
 
 ```text

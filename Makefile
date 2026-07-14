@@ -5,6 +5,7 @@ LDAP_URI ?= ldap://localhost
 KRB_USER ?= jperez
 KDC_SECONDARY ?= kdc2.fis.epn.ec
 INTEGRATION_LDAP_URI ?= ldap://ldap1.fis.epn.ec
+LDAP_LB_URI ?= ldaps://ldap.fis.epn.edu.ec:1636
 WEB_HOST ?= web.fis.epn.ec
 WEB_URL ?= https://web.fis.epn.ec/
 
@@ -52,7 +53,7 @@ help:
 	@echo "  make web-https WEB_HOST=web.fis.epn.ec Probar TLS web"
 	@echo "  make web-kerberos KRB_USER=jperez Probar Kerberos web"
 	@echo "  make ha             Mostrar despliegue HAProxy LDAP"
-	@echo "  make ha-test         Probar LDAP por balanceador"
+	@echo "  make ha-test LDAP_LB_URI=ldaps://ldap.fis.epn.edu.ec:1636 Probar LDAP por balanceador"
 	@echo "  make ha-failover     Probar lectura despues de detener ldap1"
 	@echo "  make monitoring     Mostrar despliegue Prometheus"
 	@echo "  make monitoring-start Configurar Prometheus"
@@ -207,14 +208,14 @@ ha:
 	@echo "  1. sudo bash ha/scripts/00-install-haproxy.sh"
 	@echo "  2. make pki-demo-certs"
 	@echo "  3. sudo bash ha/scripts/01-configure-ldap-lb.sh"
-	@echo "  4. make ha-test"
+	@echo "  4. make ha-test LDAP_LB_URI=ldaps://ldap.fis.epn.edu.ec:1636"
 	@echo "  5. Detener slapd en ldap1 y ejecutar make ha-failover"
 
 ha-test:
-	@bash ha/scripts/02-test-ldap-lb.sh
+	@bash ha/scripts/02-test-ldap-lb.sh "$(LDAP_LB_URI)"
 
 ha-failover:
-	@bash ha/scripts/03-test-ldap-failover.sh
+	@bash ha/scripts/03-test-ldap-failover.sh "$(LDAP_LB_URI)"
 
 monitoring:
 	@echo "Despliegue Prometheus:"

@@ -86,19 +86,24 @@ export_keytab_principals() {
         return 1
     fi
 
-    local keytab_dir temporary_keytab principal
+    local keytab_dir temporary_dir temporary_keytab principal
     keytab_dir="$(dirname "$keytab_path")"
-    temporary_keytab="$(mktemp "$keytab_dir/.keytab.XXXXXX")"
+    temporary_dir="$(mktemp -d "$keytab_dir/.keytab.XXXXXX")"
+    temporary_keytab="$temporary_dir/keytab"
 
-    for principal in "$@"; do
-        if ! kadmin.local -q "ktadd -norandkey -k $temporary_keytab $principal"; then
-            rm -f "$temporary_keytab"
-            return 1
-        fi
-    done
+    if ! (
+        for principal in "$@"; do
+            kadmin.local -q "ktadd -norandkey -k $temporary_keytab $principal" || exit 1
+        done
 
-    chmod 0600 "$temporary_keytab"
-    mv -f "$temporary_keytab" "$keytab_path"
+        chmod 0600 "$temporary_keytab"
+        mv -f "$temporary_keytab" "$keytab_path"
+    ); then
+        rm -rf "$temporary_dir"
+        return 1
+    fi
+
+    rmdir "$temporary_dir"
 }
 
 check_dir_exists() {

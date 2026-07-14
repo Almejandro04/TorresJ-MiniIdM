@@ -4,7 +4,8 @@
 
 Documentar la distribucion logica de los servicios del proyecto.
 
-La topologia exacta puede implementarse con dos, tres o cuatro maquinas virtuales. La decision final se tomara segun recursos disponibles y facilidad de pruebas.
+La implementacion final usa dos maquinas virtuales. Los roles LDAP, KDC, web,
+balanceo y monitoreo son logicos y se distribuyen entre esos dos nodos.
 
 ## Componentes requeridos
 
@@ -21,50 +22,15 @@ El proyecto debe incluir:
 - Componente de monitoreo.
 - Pruebas de fallos.
 
-## Opcion A: cuatro nodos logicos
+## Dos maquinas virtuales
 
 | Nodo | IP sugerida | Rol |
 |---|---|---|
-| idm1 | 192.168.56.10 | CA, LDAP Master, KDC Primario |
-| idm2 | 192.168.56.11 | LDAP Replica, KDC Secundario |
-| edge | 192.168.56.12 | Balanceador, Web, Monitoreo |
-| client | 192.168.56.13 | Cliente de pruebas |
-
-## Opcion B: dos maquinas virtuales
-
-| Nodo | IP sugerida | Rol |
-|---|---|---|
-| idm1 | 192.168.56.10 | CA, LDAP Master, KDC Primario, Balanceador, Web |
+| idm1 | 192.168.56.10 | CA, LDAP Master (ldap1), KDC Primario (kdc1), Balanceador, Web, Prometheus |
 | idm2 | 192.168.56.11 | LDAP Replica, KDC Secundario, Cliente de pruebas |
 
-## Ventajas de la opcion A
-
-- Separacion mas clara de responsabilidades.
-- Mejor demostracion de alta disponibilidad.
-- Permite probar fallos de servicios sin mezclar tantos roles.
-- Mas facil de explicar en el informe.
-
-## Ventajas de la opcion B
-
-- Menor consumo de RAM y CPU.
-- Menos maquinas para administrar.
-- Mas rapida para una implementacion individual.
-- Suficiente para una version academica funcional.
-
-## Decision inicial
-
-La implementacion empezara sin fijar una cantidad definitiva de maquinas.
-
-Primero se prepararan scripts, configuraciones y pruebas. Luego se desplegara en maquinas virtuales.
-
-La opcion recomendada para iniciar es:
-
-```text
-idm1: CA, LDAP Master, KDC Primario
-idm2: LDAP Replica, KDC Secundario
-```
-
-Luego se evaluara si conviene separar `edge` y `client` en maquinas adicionales.
+No existe un nodo `edge`: HAProxy comparte idm1 con slapd y por eso expone
+LDAPS en 1636, mientras los backends ldap1 y ldap2 mantienen 636.
 
 ## Flujo de comunicacion esperado
 

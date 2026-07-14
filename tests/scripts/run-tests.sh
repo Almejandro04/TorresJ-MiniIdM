@@ -62,4 +62,4 @@ run_test ldaps ldap1.fis.epn.ec 636 tests/ldap/test-ldaps.sh
 run_test kerberos-kinit kdc1.fis.epn.ec 88 tests/kerberos/test-kinit.sh
 run_test kerberos-service-ticket kdc1.fis.epn.ec 88 tests/kerberos/test-service-ticket.sh
 run_test web-tls web.fis.epn.ec 443 tests/tls/test-openssl-s-client.sh
-run_test haproxy-throughput ldap.fis.epn.edu.ec 636 tests/ha/test-throughput.sh
+run_test haproxy-throughput ldap.fis.epn.edu.ec 1636 tests/ha/test-throughput.sh

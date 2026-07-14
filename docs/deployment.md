@@ -9,6 +9,11 @@ Use the two VM option from `inventory/topology.md`.
 | idm1 | 192.168.56.10 | CA, ldap1, kdc1, HAProxy, web |
 | idm2 | 192.168.56.11 | ldap2, kdc2, test client |
 
+Los roles son logicos y comparten dos nodos fisicos: ldap1 y kdc1 resuelven a
+idm1; ldap2 y kdc2 a idm2. No existe una VM edge en la implementacion final.
+HAProxy se ejecuta en idm1 y usa el puerto externo 1636, porque slapd ya ocupa
+el puerto 636 de esa VM; los backends LDAP permanecen en 636 con TLS.
+
 ## Hosts file
 
 Add these entries to `/etc/hosts` on both VM.
@@ -39,6 +44,10 @@ make kerberos-users
 make kerberos-services
 make kerberos-keytabs
 make kerberos-host-keytabs
+sudo bash ha/scripts/00-install-haproxy.sh
+sudo bash ha/scripts/01-configure-ldap-lb.sh
+sudo bash monitoring/scripts/00-install-monitoring.sh
+sudo bash monitoring/scripts/01-start-prometheus.sh
 ```
 
 Run as normal user:
@@ -89,13 +98,17 @@ make ldap-search LDAP_URI=ldap://ldap1.fis.epn.ec
 bash tests/ldap/test-ldaps.sh ldap1.fis.epn.ec
 make kerberos-kinit KRB_USER=jperez
 make kerberos-check-propagation
-make ha-test
+make ha-test LDAP_LB_URI=ldaps://ldap.fis.epn.edu.ec:1636
 make test-run
 ```
 
-Expected LDAP result: user entries are returned. Expected LDAPS result: OpenSSL verifies the CA. Expected Kerberos result: `klist` shows a TGT. Expected HAProxy result: LDAP search returns `jperez` through `ldap.fis.epn.edu.ec`.
+Expected LDAP result: user entries are returned. Expected LDAPS result: OpenSSL verifies the CA. Expected Kerberos result: `klist` shows a TGT. Expected HAProxy result: LDAP search returns `jperez` through `ldap.fis.epn.edu.ec:1636`.
 
 For the Kerberos failover test, stop `krb5-kdc` on idm1 and run `make kerberos-failover KRB_USER=jperez` from idm2. It must obtain a TGT and a ticket for `ldap/ldap2.fis.epn.ec` through the secondary.
+
+For LDAP HA validation, use `ldaps://ldap.fis.epn.edu.ec:1636`. External 636
+requires HAProxy on an independent node or IP and is not available while it
+shares idm1 with slapd.
 
 ## Results
 

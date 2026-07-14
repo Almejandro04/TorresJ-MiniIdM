@@ -3,9 +3,9 @@
     DocumentRoot /var/www/miniidm
 
     SSLEngine on
-    SSLCertificateFile /etc/ssl/miniidm/web.fis.epn.ec.crt
-    SSLCertificateKeyFile /etc/ssl/miniidm/web.fis.epn.ec.key
-    SSLCACertificateFile /etc/ssl/miniidm/ca-root.crt
+    SSLCertificateFile /etc/apache2/miniidm/tls/web.fis.epn.ec.crt
+    SSLCertificateKeyFile /etc/apache2/miniidm/tls/web.fis.epn.ec.key
+    SSLCACertificateFile /etc/apache2/miniidm/tls/ca-root.crt
 
     <Directory /var/www/miniidm>
         Options -Indexes
@@ -17,8 +17,8 @@
         AuthType GSSAPI
         AuthName "MiniIdM Kerberos"
         GssapiSSLonly On
-        GssapiLocalName On
-        GssapiAcceptorName HTTP
+        GssapiLocalName Off
+        GssapiAcceptorName HTTP/web.fis.epn.ec@FIS.EPN.EC
         GssapiCredStore keytab:/etc/apache2/miniidm/web.keytab
         Require valid-user
     </Location>

@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-LDAP_URI="${1:-ldaps://ldap.fis.epn.edu.ec}"
+LDAP_URI="${1:-ldaps://ldap.fis.epn.edu.ec:1636}"
 REQUESTS="${2:-20}"
 BASE_DN="dc=fis,dc=epn,dc=ec"
 CA_CERT="pki/certs/ca-root.crt"

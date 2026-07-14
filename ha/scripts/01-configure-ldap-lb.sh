@@ -31,7 +31,7 @@ if ! getent group haproxy >/dev/null 2>&1; then
 fi
 
 install -d -m 0750 -o root -g haproxy "$HAPROXY_DIR"
-install -m 0644 -o root -g haproxy "$CA_CERT" "$HAPROXY_DIR/ca-root.crt"
+install -m 0640 -o root -g haproxy "$CA_CERT" "$HAPROXY_DIR/ca-root.crt"
 cat "$LB_CERT" "$LB_KEY" > "$PEM_FILE"
 chown root:haproxy "$PEM_FILE"
 chmod 0640 "$PEM_FILE"

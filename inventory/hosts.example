@@ -1,13 +1,6 @@
 # ejemplo /etc/hosts
 
-# topologia cuatro nodos
+# topologia final de dos nodos
 
-192.168.56.10 idm1.fis.epn.ec idm1 ldap1.fis.epn.ec ldap1 kdc1.fis.epn.ec kdc1 ca.fis.epn.ec ca
+192.168.56.10 idm1.fis.epn.ec idm1 ldap1.fis.epn.ec ldap1 kdc1.fis.epn.ec kdc1 ca.fis.epn.ec ca ldap.fis.epn.edu.ec web.fis.epn.ec
 192.168.56.11 idm2.fis.epn.ec idm2 ldap2.fis.epn.ec ldap2 kdc2.fis.epn.ec kdc2
-192.168.56.12 edge.fis.epn.ec edge ldap.fis.epn.edu.ec web.fis.epn.ec
-192.168.56.13 client.fis.epn.ec client
-
-# topologia dos nodos
-
-# 192.168.56.10 idm1.fis.epn.ec idm1 ldap1.fis.epn.ec ldap1 kdc1.fis.epn.ec kdc1 ca.fis.epn.ec ca ldap.fis.epn.edu.ec web.fis.epn.ec
-# 192.168.56.11 idm2.fis.epn.ec idm2 ldap2.fis.epn.ec ldap2 kdc2.fis.epn.ec kdc2

@@ -37,8 +37,6 @@ dc=fis,dc=epn,dc=ec
 | kdc2.fis.epn.ec | KDC Kerberos secundario |
 | ldap.fis.epn.edu.ec | Nombre virtual del balanceador LDAP |
 | web.fis.epn.ec | Servicio web protegido |
-| edge.fis.epn.ec | Nodo de balanceo, web y monitoreo |
-| client.fis.epn.ec | Cliente de pruebas |
 
 ## Alias locales
 
@@ -51,17 +49,15 @@ dc=fis,dc=epn,dc=ec
 | kdc1 | kdc1.fis.epn.ec |
 | kdc2 | kdc2.fis.epn.ec |
 | ca | ca.fis.epn.ec |
-| edge | edge.fis.epn.ec |
 | web | web.fis.epn.ec |
-| client | client.fis.epn.ec |
 
 ## Consideraciones tecnicas
 
 - Los certificados TLS deben incluir los nombres correctos.
 - Los principals Kerberos deben usar nombres consistentes.
 - El archivo `/etc/hosts` debe ser igual en todos los nodos.
-- Si se usa una arquitectura minima de dos maquinas, varios nombres pueden apuntar a la misma IP.
-- El nombre virtual `ldap.fis.epn.edu.ec` debe apuntar al balanceador.
+- La implementacion final usa dos VM: ldap1/kdc1 apuntan a idm1 y ldap2/kdc2 a idm2.
+- El nombre virtual `ldap.fis.epn.edu.ec` apunta a HAProxy en idm1; no existe un nodo edge.
 - El realm Kerberos se escribe en mayusculas: `FIS.EPN.EC`.
 - La base LDAP se escribe como DN: `dc=fis,dc=epn,dc=ec`.
 
