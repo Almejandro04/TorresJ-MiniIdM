@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# mata el PID principal de un servicio permitido; requiere --apply
+# mata un MainPID permitido y mide una recuperacion funcional; requiere --apply
 
 set -euo pipefail
 
@@ -28,6 +28,18 @@ case "$SERVICE_NAME" in
 esac
 
 RECOVERY_TIMEOUT_SECONDS="${RECOVERY_TIMEOUT_SECONDS:-30}"
+FUNCTIONAL_TIMEOUT_SECONDS="${FUNCTIONAL_TIMEOUT_SECONDS:-5}"
+SLAPD_HOST="${SLAPD_HOST:-127.0.0.1}"
+SLAPD_PORT="${SLAPD_PORT:-389}"
+APACHE_HOST="${APACHE_HOST:-127.0.0.1}"
+APACHE_PORT="${APACHE_PORT:-443}"
+HAPROXY_HOST="${HAPROXY_HOST:-127.0.0.1}"
+HAPROXY_PORT="${HAPROXY_PORT:-1636}"
+HAPROXY_LDAP_URI="${HAPROXY_LDAP_URI:-ldaps://ldap.fis.epn.edu.ec:1636}"
+HAPROXY_LDAP_BASE_DN="${HAPROXY_LDAP_BASE_DN:-dc=fis,dc=epn,dc=ec}"
+HAPROXY_CA_CERT="${HAPROXY_CA_CERT:-$PROJECT_DIR/pki/certs/ca-root.crt}"
+KDC_HOST="${KDC_HOST:-127.0.0.1}"
+KDC_PORT="${KDC_PORT:-88}"
 RESULT_FILE="$PROJECT_DIR/results/faults/service-kill.csv"
 SERVICE_KILLED=false
 
@@ -37,6 +49,7 @@ require_command systemctl
 require_command kill
 require_command date
 require_positive_integer "RECOVERY_TIMEOUT_SECONDS" "$RECOVERY_TIMEOUT_SECONDS"
+require_positive_integer "FUNCTIONAL_TIMEOUT_SECONDS" "$FUNCTIONAL_TIMEOUT_SECONDS"
 
 if [ "$RECOVERY_TIMEOUT_SECONDS" -gt 60 ]; then
     print_error "RECOVERY_TIMEOUT_SECONDS no puede superar 60"
@@ -48,15 +61,16 @@ if ! systemctl is-active --quiet "$SERVICE_NAME"; then
     exit 1
 fi
 
-MAIN_PID="$(systemctl show --property MainPID --value "$SERVICE_NAME")"
-if [ "$MAIN_PID" -le 0 ]; then
+OLD_MAIN_PID="$(systemctl show --property MainPID --value "$SERVICE_NAME")"
+RESTART_POLICY="$(systemctl show --property Restart --value "$SERVICE_NAME")"
+if [ "$OLD_MAIN_PID" -le 0 ]; then
     print_error "No se obtuvo un PID principal valido para $SERVICE_NAME"
     exit 1
 fi
 
 if [ "$APPLY" = false ]; then
-    print_info "Dry-run: se ejecutaria kill -9 sobre PID $MAIN_PID de $SERVICE_NAME"
-    print_info "Systemd se esperaria durante un maximo de $RECOVERY_TIMEOUT_SECONDS s"
+    print_info "Dry-run: se ejecutaria kill -9 sobre PID $OLD_MAIN_PID de $SERVICE_NAME"
+    print_info "Restart=$RESTART_POLICY; se exigiria un MainPID nuevo y una comprobacion funcional"
     exit 0
 fi
 
@@ -69,29 +83,86 @@ restore_service() {
     fi
 }
 
+wait_for_transition() {
+    local deadline_ms current_pid service_state
+    deadline_ms="$(( $(monotonic_milliseconds) + FUNCTIONAL_TIMEOUT_SECONDS * 1000 ))"
+
+    while [ "$(monotonic_milliseconds)" -lt "$deadline_ms" ]; do
+        current_pid="$(systemctl show --property MainPID --value "$SERVICE_NAME")"
+        service_state="$(systemctl is-active "$SERVICE_NAME" 2>/dev/null || true)"
+        if ! kill -0 "$OLD_MAIN_PID" 2>/dev/null || [ "$current_pid" != "$OLD_MAIN_PID" ]; then
+            return 0
+        fi
+        case "$service_state" in
+            inactive|failed|activating|deactivating) return 0 ;;
+        esac
+        sleep 0.1
+    done
+
+    print_error "Systemd no mostro transicion despues de matar el PID $OLD_MAIN_PID"
+    return 1
+}
+
+functional_check() {
+    case "$SERVICE_NAME" in
+        slapd)
+            tcp_check "$SLAPD_HOST" "$SLAPD_PORT" "$FUNCTIONAL_TIMEOUT_SECONDS"
+            ;;
+        apache2)
+            tcp_check "$APACHE_HOST" "$APACHE_PORT" "$FUNCTIONAL_TIMEOUT_SECONDS"
+            ;;
+        haproxy)
+            if command -v ldapsearch >/dev/null 2>&1 && [ -f "$HAPROXY_CA_CERT" ]; then
+                run_with_timeout "$FUNCTIONAL_TIMEOUT_SECONDS" ldapsearch -x -LLL -H "$HAPROXY_LDAP_URI" -o "TLS_CACERT=$HAPROXY_CA_CERT" -b "$HAPROXY_LDAP_BASE_DN" "(uid=jperez)" uid >/dev/null 2>&1
+            else
+                tcp_check "$HAPROXY_HOST" "$HAPROXY_PORT" "$FUNCTIONAL_TIMEOUT_SECONDS"
+            fi
+            ;;
+        krb5-kdc)
+            tcp_check "$KDC_HOST" "$KDC_PORT" "$FUNCTIONAL_TIMEOUT_SECONDS"
+            ;;
+    esac
+}
+
 trap restore_service EXIT
-initialize_csv "$RESULT_FILE" "timestamp,service,recovery_ms,result"
+initialize_csv "$RESULT_FILE" "timestamp,service,old_pid,new_pid,recovery_ms,result"
 
 start_ms="$(monotonic_milliseconds)"
-kill -9 "$MAIN_PID"
+kill -9 "$OLD_MAIN_PID"
 SERVICE_KILLED=true
-deadline_ms="$((start_ms + RECOVERY_TIMEOUT_SECONDS * 1000))"
-result="timeout"
-recovery_ms="$((RECOVERY_TIMEOUT_SECONDS * 1000))"
 
-while [ "$(monotonic_milliseconds)" -lt "$deadline_ms" ]; do
-    if systemctl is-active --quiet "$SERVICE_NAME"; then
-        recovery_ms="$(( $(monotonic_milliseconds) - start_ms ))"
-        result="ok"
-        break
-    fi
-    sleep 0.1
-done
-
-append_csv_row "$RESULT_FILE" "$(date -Iseconds)" "$SERVICE_NAME" "$recovery_ms" "$result"
-if [ "$result" != "ok" ]; then
-    print_error "$SERVICE_NAME no se recupero antes del timeout"
+if ! wait_for_transition; then
+    NEW_MAIN_PID="$(systemctl show --property MainPID --value "$SERVICE_NAME")"
+    recovery_ms="$(( $(monotonic_milliseconds) - start_ms ))"
+    append_csv_row "$RESULT_FILE" "$(date -Iseconds)" "$SERVICE_NAME" "$OLD_MAIN_PID" "$NEW_MAIN_PID" "$recovery_ms" "transition_timeout"
     exit 1
 fi
 
-print_ok "$SERVICE_NAME recuperado en $recovery_ms ms"
+if [ "$RESTART_POLICY" = "no" ]; then
+    NEW_MAIN_PID="$(systemctl show --property MainPID --value "$SERVICE_NAME")"
+    recovery_ms="$(( $(monotonic_milliseconds) - start_ms ))"
+    print_error "$SERVICE_NAME tiene Restart=no; systemd no tiene recuperacion automatica configurada"
+    append_csv_row "$RESULT_FILE" "$(date -Iseconds)" "$SERVICE_NAME" "$OLD_MAIN_PID" "$NEW_MAIN_PID" "$recovery_ms" "no_auto_restart"
+    exit 0
+fi
+
+if NEW_MAIN_PID="$(wait_for_new_main_pid "$SERVICE_NAME" "$OLD_MAIN_PID" "$RECOVERY_TIMEOUT_SECONDS")"; then
+    recovery_ms="$(( $(monotonic_milliseconds) - start_ms ))"
+    if functional_check; then
+        result="ok"
+    else
+        result="functional_check_failed"
+    fi
+else
+    NEW_MAIN_PID="$(systemctl show --property MainPID --value "$SERVICE_NAME")"
+    recovery_ms="$(( $(monotonic_milliseconds) - start_ms ))"
+    result="recovery_timeout"
+fi
+
+append_csv_row "$RESULT_FILE" "$(date -Iseconds)" "$SERVICE_NAME" "$OLD_MAIN_PID" "$NEW_MAIN_PID" "$recovery_ms" "$result"
+if [ "$result" != "ok" ]; then
+    print_error "$SERVICE_NAME no supero la recuperacion funcional: $result"
+    exit 1
+fi
+
+print_ok "$SERVICE_NAME recuperado funcionalmente en $recovery_ms ms con PID $NEW_MAIN_PID"

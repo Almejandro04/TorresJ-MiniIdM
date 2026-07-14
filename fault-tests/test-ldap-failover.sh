@@ -20,7 +20,9 @@ if [ "$#" -ne 0 ]; then
 fi
 
 LDAP_URI="${LDAP_URI:-ldaps://ldap.fis.epn.edu.ec:1636}"
+LDAP1_URI="${LDAP1_URI:-ldaps://ldap1.fis.epn.ec:636}"
 LDAP_BASE_DN="${LDAP_BASE_DN:-dc=fis,dc=epn,dc=ec}"
+LDAP_FILTER="${LDAP_FILTER:-(uid=jperez)}"
 CA_CERT="${CA_CERT:-$PROJECT_DIR/pki/certs/ca-root.crt}"
 FAILOVER_TIMEOUT_SECONDS="${FAILOVER_TIMEOUT_SECONDS:-25}"
 RESULT_FILE="$PROJECT_DIR/results/faults/ldap-failover.csv"
@@ -33,7 +35,6 @@ require_command systemctl
 require_command ldapsearch
 require_command timeout
 require_command date
-require_command awk
 require_positive_integer "FAILOVER_TIMEOUT_SECONDS" "$FAILOVER_TIMEOUT_SECONDS"
 check_file_exists "$CA_CERT"
 
@@ -47,14 +48,21 @@ if [ "$(hostname -s)" != "idm1" ]; then
     exit 1
 fi
 
+ldap_check() {
+    local uri="$1"
+    local timeout_seconds="${2:-3}"
+
+    run_with_timeout "$timeout_seconds" ldapsearch -x -LLL -H "$uri" -o "TLS_CACERT=$CA_CERT" -b "$LDAP_BASE_DN" "$LDAP_FILTER" uid >/dev/null 2>&1
+}
+
 if ! systemctl is-active --quiet slapd || ! systemctl is-active --quiet haproxy; then
     print_error "slapd y haproxy deben estar activos antes de la prueba"
     exit 1
 fi
 
 if [ "$APPLY" = false ]; then
-    print_info "Dry-run: validado estado inicial de slapd y haproxy"
-    print_info "Se detendria slapd, se consultaria $LDAP_URI y se restauraria en menos de $FAILOVER_TIMEOUT_SECONDS s"
+    print_info "Dry-run: se detendria slapd, se consultaria $LDAP_URI y se validaria la restauracion directa a ldap1"
+    print_info "No se puede confirmar de forma segura el backend HAProxy sin instrumentacion adicional"
     exit 0
 fi
 
@@ -65,27 +73,33 @@ restore_slapd() {
         print_info "Restaurando slapd"
         if systemctl start slapd; then
             SLAPD_STOPPED=false
-        else
-            print_error "No se pudo restaurar slapd automaticamente"
+            return 0
         fi
+        print_error "No se pudo restaurar slapd; ejecute: sudo systemctl start slapd"
+        return 1
     fi
 }
 
 trap restore_slapd EXIT
-initialize_csv "$RESULT_FILE" "timestamp,failover_ms,result"
+initialize_csv "$RESULT_FILE" "timestamp,failover_ms,restore_ms,ldap_direct_after,result"
 
 print_info "Deteniendo slapd; la restauracion esta protegida por trap"
 systemctl stop slapd
 SLAPD_STOPPED=true
+if systemctl is-active --quiet slapd; then
+    print_error "slapd sigue activo despues de systemctl stop"
+    exit 1
+fi
+
 start_ms="$(monotonic_milliseconds)"
 deadline_ms="$((start_ms + FAILOVER_TIMEOUT_SECONDS * 1000))"
-result="timeout"
+result="failover_timeout"
 failover_ms="$((FAILOVER_TIMEOUT_SECONDS * 1000))"
 
 while [ "$(monotonic_milliseconds)" -lt "$deadline_ms" ]; do
     remaining_ms="$((deadline_ms - $(monotonic_milliseconds)))"
-    remaining_seconds="$(awk -v milliseconds="$remaining_ms" 'BEGIN { printf "%.3f", milliseconds / 1000 }')"
-    if run_with_timeout "$remaining_seconds" ldapsearch -x -LLL -H "$LDAP_URI" -o "TLS_CACERT=$CA_CERT" -b "$LDAP_BASE_DN" "(uid=jperez)" uid >/dev/null 2>&1; then
+    remaining_seconds="$(( (remaining_ms + 999) / 1000 ))"
+    if ldap_check "$LDAP_URI" "$remaining_seconds"; then
         failover_ms="$(( $(monotonic_milliseconds) - start_ms ))"
         result="ok"
         break
@@ -93,16 +107,31 @@ while [ "$(monotonic_milliseconds)" -lt "$deadline_ms" ]; do
     sleep 0.1
 done
 
-restore_slapd
-if ! systemctl is-active --quiet slapd; then
-    print_error "slapd no se recupero despues de la prueba"
+restore_start_ms="$(monotonic_milliseconds)"
+if restore_slapd && systemctl is-active --quiet slapd; then
+    restore_ms="$(( $(monotonic_milliseconds) - restore_start_ms ))"
+else
+    restore_ms="$(( $(monotonic_milliseconds) - restore_start_ms ))"
+    append_csv_row "$RESULT_FILE" "$(date -Iseconds)" "$failover_ms" "$restore_ms" "0" "restore_failed"
     exit 1
 fi
 
-append_csv_row "$RESULT_FILE" "$(date -Iseconds)" "$failover_ms" "$result"
+if tcp_check "ldap1.fis.epn.ec" 636 5 && ldap_check "$LDAP1_URI"; then
+    ldap_direct_after=1
+else
+    ldap_direct_after=0
+fi
+
 if [ "$result" != "ok" ]; then
-    print_error "HAProxy no respondio antes del timeout"
+    result="failover_timeout"
+elif [ "$ldap_direct_after" -ne 1 ]; then
+    result="direct_ldap_restore_failed"
+fi
+
+append_csv_row "$RESULT_FILE" "$(date -Iseconds)" "$failover_ms" "$restore_ms" "$ldap_direct_after" "$result"
+if [ "$result" != "ok" ]; then
+    print_error "La prueba LDAP termino con $result"
     exit 1
 fi
 
-print_ok "Failover LDAP en $failover_ms ms"
+print_ok "Failover LDAP en $failover_ms ms; restauracion en $restore_ms ms"

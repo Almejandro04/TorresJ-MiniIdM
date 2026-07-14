@@ -1,123 +1,178 @@
 # Pruebas de fallos controladas
 
-La topologia final tiene dos VM: idm1 aloja ldap1, kdc1, Apache, HAProxy,
-Prometheus y la CA; idm2 aloja ldap2, kdc2 y el cliente. Todos los scripts son
-**dry-run por defecto**. Solo `--apply` permite detener, matar, reiniciar o
-insertar reglas. No ejecutarlos en produccion.
+La topologia tiene dos VM: idm1 aloja ldap1, kdc1, Apache, HAProxy, Prometheus
+y la CA; idm2 aloja ldap2, kdc2 y el cliente. Todos los scripts son
+**dry-run por defecto**; ejecutar primero sin `--apply`. Solo `--apply` permite
+detener, matar, reiniciar, insertar reglas o reemplazar archivos. No usarlos en
+produccion.
 
-Los CSV se crean solamente al ejecutar las pruebas en `results/faults/`; el
-repositorio conserva el directorio vacio.
+Los resultados se crean al ejecutar las pruebas en `results/faults/`; no hay
+resultados inventados ni archivos de secretos en Git.
 
-## Failover LDAP
+## Riesgos y recuperacion manual
 
-Ejecutar exclusivamente como root en idm1:
+- `kill -9`, la particion de red y el certificado temporal pueden interrumpir
+  clientes en curso; no los ejecute durante mantenimiento LDAP o Kerberos.
+- Si un servicio no vuelve, inicie solo el servicio afectado con
+  `sudo systemctl start NOMBRE_SERVICIO` y valide antes de continuar.
+- Si queda un backup de certificado, copie el archivo mostrado por el script a
+  `TARGET_FILE` con `sudo cp --preserve=mode,ownership BACKUP TARGET_FILE`,
+  ejecute el configtest correspondiente y reinicie `apache2` o `haproxy`.
+
+## Orden recomendado
+
+1. TLS overhead LDAP.
+2. Throughput HAProxy.
+3. Replicacion LDAP.
+4. Failover LDAP.
+5. Failover KDC.
+6. Kill de servicio.
+7. Particion de red.
+8. Certificado invalido.
+
+## Failover LDAP — idm1
 
 ```bash
 sudo bash fault-tests/test-ldap-failover.sh
 sudo FAILOVER_TIMEOUT_SECONDS=20 bash fault-tests/test-ldap-failover.sh --apply
 ```
 
-Valida `slapd` y HAProxy, detiene slapd y consulta
-`ldaps://ldap.fis.epn.edu.ec:1636` hasta recibir respuesta de ldap2. El limite
-por defecto es 25 segundos (maximo 25, para restaurar slapd antes de 30) y un
-`trap` inicia slapd ante salida normal, error o interrupcion. Recuperacion manual:
+Requiere `slapd`, HAProxy, `ldapsearch` y la CA. Verifica que slapd quede
+inactivo, mide la respuesta de `ldaps://ldap.fis.epn.edu.ec:1636`, e inicia
+slapd mediante `trap`. El limite es 25 segundos para que la interrupcion no
+supere 30. Tras restaurar, comprueba estado, TCP 636 y una consulta directa a
+ldap1. Si falla: `sudo systemctl start slapd`.
 
-```bash
-sudo systemctl start slapd
-sudo systemctl status slapd haproxy
+Variables: `LDAP_URI`, `LDAP1_URI`, `LDAP_BASE_DN`, `LDAP_FILTER`, `CA_CERT`,
+`FAILOVER_TIMEOUT_SECONDS`. CSV:
+
+```text
+timestamp,failover_ms,restore_ms,ldap_direct_after,result
 ```
 
-`ldap-failover.csv` contiene `timestamp,failover_ms,result`.
+La confirmacion de backend concreto es opcional porque HAProxy no expone ese
+dato de forma segura sin instrumentacion adicional.
 
-## Failover KDC
-
-Ejecutar desde idm2 o el cliente. El script no supone SSH sin clave ni guarda
-contrasenas de Kerberos; `kinit` solicita la clave de forma interactiva.
+## Failover KDC — idm2 o cliente
 
 ```bash
-KRB_USER=jperez bash fault-tests/test-kdc-failover.sh --manual
-KRB_USER=jperez bash fault-tests/test-kdc-failover.sh --apply --manual
+KRB_TEST_KEYTAB=/ruta/protegida/test.keytab \
+KRB_TEST_PRINCIPAL=usuario-prueba@FIS.EPN.EC \
+bash fault-tests/test-kdc-failover.sh --manual
 ```
 
-En modo manual mide una linea base, pide detener `krb5-kdc` en idm1 desde otra
-sesion y espera la confirmacion `CONTINUAR`. Restaurar manualmente con:
+El keytab de prueba es obligatorio, debe existir y no ser world-readable.
+**Nunca se versiona**, imprime ni se copia al repositorio. La medicion usa
+`kinit -k -t`, elimina tickets antes de cada intento y verifica `klist -s`.
+Un trace temporal `KRB5_TRACE` identifica, si es posible, el KDC que respondio
+y se borra con el `trap`.
+
+Para ejecutar de verdad:
 
 ```bash
-sudo systemctl start krb5-kdc       # en idm1
+KRB_TEST_KEYTAB=/ruta/protegida/test.keytab \
+KRB_TEST_PRINCIPAL=usuario-prueba@FIS.EPN.EC \
+bash fault-tests/test-kdc-failover.sh --apply --manual
 ```
 
-Solo con SSH configurado sin prompt y `sudo -n` autorizado se puede usar el
-modo que se hace responsable de la restauracion:
+El modo manual exige confirmar `DETENIDO` tras parar el primario y
+`RESTAURADO` despues de iniciarlo; verifica luego TCP 88. Con SSH configurado
+sin prompt y `sudo -n`:
 
 ```bash
-KRB_USER=jperez bash fault-tests/test-kdc-failover.sh \
-  --apply --ssh-primary admin@idm1.fis.epn.ec
+KRB_TEST_KEYTAB=/ruta/protegida/test.keytab \
+KRB_TEST_PRINCIPAL=usuario-prueba@FIS.EPN.EC \
+  bash fault-tests/test-kdc-failover.sh --apply --ssh-primary admin@idm1.fis.epn.ec
 ```
 
-El `trap` inicia el KDC remoto si el propio script lo detuvo.
-`kdc-failover.csv` usa
-`timestamp,mode,principal,baseline_ms,failover_ms,result`.
-`KINIT_TIMEOUT_SECONDS` limita cada autenticacion a 30 segundos por defecto.
+El modo SSH verifica BatchMode y sudo antes de detener algo y el `trap` restaura
+el KDC. Variables: `KRB_TEST_KEYTAB`, `KRB_TEST_PRINCIPAL`,
+`KINIT_TIMEOUT_SECONDS`, `PRIMARY_KDC_HOST` y `PRIMARY_KDC_PORT`. CSV:
 
-## Kill de servicios
+```text
+timestamp,mode,principal,baseline_ms,failover_ms,kdc_used,result
+```
 
-Ejecutar como root en el nodo que hospeda el servicio:
+Si la restauracion manual falla, en idm1 ejecute:
+
+```bash
+sudo systemctl start krb5-kdc
+```
+
+## Kill de servicio — nodo propietario
 
 ```bash
 sudo bash fault-tests/test-service-kill.sh haproxy
 sudo RECOVERY_TIMEOUT_SECONDS=20 bash fault-tests/test-service-kill.sh haproxy --apply
 ```
 
-Solo acepta `slapd`, `apache2`, `haproxy` o `krb5-kdc`. Con `--apply` usa
-`kill -9` sobre el `MainPID` de systemd y espera hasta 30 segundos por la
-recuperacion. Si no se recupera, el `trap` intenta iniciarlo. Recuperacion
-manual: `sudo systemctl start NOMBRE_SERVICIO`.
-`service-kill.csv` contiene `timestamp,service,recovery_ms,result`.
+Solo acepta `slapd`, `apache2`, `haproxy` y `krb5-kdc`. Guarda el PID previo,
+espera transición y exige un `MainPID` nuevo más una comprobación funcional;
+nunca acepta `active` con el PID antiguo. Si `Restart=no`, registra
+`no_auto_restart` y el `trap` ejecuta `systemctl start`. Variables funcionales:
+`SLAPD_HOST`, `SLAPD_PORT`, `APACHE_HOST`, `APACHE_PORT`, `HAPROXY_HOST`,
+`HAPROXY_PORT`, `HAPROXY_LDAP_URI`, `HAPROXY_LDAP_BASE_DN`, `HAPROXY_CA_CERT`,
+`KDC_HOST`, `KDC_PORT`, `FUNCTIONAL_TIMEOUT_SECONDS` y
+`RECOVERY_TIMEOUT_SECONDS`. Recuperacion manual: `sudo systemctl start SERVICIO`.
 
-`kill -9` puede interrumpir operaciones en curso; no ejecutarlo durante
-administracion LDAP o Kerberos.
+CSV:
 
-## Particion de red LDAP
+```text
+timestamp,service,old_pid,new_pid,recovery_ms,result
+```
 
-Ejecutar como root solo en idm1 o idm2:
+## Particion de red LDAP — idm1 o idm2
 
 ```bash
 sudo bash fault-tests/test-network-partition.sh
-sudo PARTITION_SECONDS=10 bash fault-tests/test-network-partition.sh --apply
+sudo PARTITION_SECONDS=10 TOTAL_TIMEOUT_SECONDS=30 \
+  bash fault-tests/test-network-partition.sh --apply
 ```
 
-El dry-run muestra las reglas. Con `--apply`, inserta dos reglas `DROP` TCP
-para LDAP entre `192.168.56.10` y `192.168.56.11`, por defecto en 636
-(acepta exclusivamente 389 o 636). No usa `iptables -F`, etiqueta las reglas y
-el `trap` borra exactamente esas reglas. La duracion maxima es 20 segundos y
-se comprueba conectividad antes y despues.
+Solo bloquea TCP 389 o 636 entre `192.168.56.10` y `192.168.56.11`, nunca vacia
+las reglas de `iptables` ni elimina reglas ajenas. Verifica TCP y LDAP antes, que el acceso
+directo falle durante el bloqueo, y TCP/LDAP tras retirarlo. En idm1 puede
+comprobar HAProxy con `HAPROXY_DURING_CHECK=true`; es una observacion adicional.
+Las reglas se etiquetan y se guardan exactamente en
+`network-partition-rules.txt`; el `trap` elimina solo las que alcanzaron a
+insertarse. Si una restauracion falla, usar `iptables -S` para localizar la
+etiqueta `miniidm-ldap-partition-...` y eliminar esas reglas con `iptables -D`.
 
-Las reglas se guardan en `results/faults/network-partition-rules.txt`. Si una
-restauracion automatica falla, ubicar la etiqueta
-`miniidm-ldap-partition-...` con `iptables -S` y ejecutar solo las dos reglas
-equivalentes con `iptables -D`.
+Variables: `LDAP_PORT`, `PARTITION_SECONDS`, `TOTAL_TIMEOUT_SECONDS`,
+`REMOTE_IP`, `REMOTE_LDAP_URI`, `LDAP_BASE_DN`, `LDAP_FILTER`, `CA_CERT`,
+`HAPROXY_URI`, `HAPROXY_DURING_CHECK`. CSV:
 
-## Certificado invalido
-
-El modo inicial no modifica archivos:
-
-```bash
-sudo bash fault-tests/test-invalid-certificate.sh apache2
+```text
+timestamp,node,remote_ip,port,duration_seconds,blocked,recovered,ldap_before,ldap_during,ldap_after,result
 ```
 
-Para ejecutar una prueba controlada, proporcionar un archivo ya creado para
-pruebas. Para Apache puede ser un certificado expirado de prueba compatible
-con su clave; para HAProxy debe ser un PEM de prueba completo con su clave.
-No generar ni usar certificados reales del servicio.
+## Certificado invalido — idm1
 
 ```bash
-sudo INVALID_FILE=/ruta/expired-test.crt \
+sudo INVALID_FILE=/ruta/certificado-prueba.pem \
+  bash fault-tests/test-invalid-certificate.sh apache2
+```
+
+`INVALID_FILE` es obligatorio y no se genera automaticamente. Para Apache debe
+ser certificado PEM; el script compara su clave publica con la clave instalada
+y documenta un posible rechazo por mismatch. Para HAProxy debe ser un PEM
+completo con certificado y clave compatibles, pero que el cliente rechace por
+expiracion, CA incorrecta u hostname.
+
+Con `--apply` valida el servicio y TLS actual, conserva backup, permisos y
+ownership, ejecuta configtest sin abortar, reinicia temporalmente si procede y
+comprueba el rechazo TLS desde cliente. Finalmente restaura, valida config,
+reinicia y confirma TLS valido antes de borrar el backup. Si falla, conserva el
+respaldo y muestra la ruta para recuperacion manual.
+
+```bash
+sudo INVALID_FILE=/ruta/certificado-prueba.pem \
   bash fault-tests/test-invalid-certificate.sh apache2 --apply
 ```
 
-El script respalda el archivo, valida `apache2ctl configtest` o `haproxy -c`
-antes de reiniciar y el `trap` restaura, valida e inicia el servicio de nuevo.
-Si hiciera falta recuperacion manual, copiar el respaldo sobre el objetivo y
-ejecutar el mismo comando de validacion seguido de `systemctl restart`.
-`invalid-certificate.csv` contiene
-`timestamp,service,target_file,invalid_file,result`.
+Variables: `TLS_CA_CERT`, `TARGET_FILE`, `INSTALLED_KEY`, `APACHE_URL`,
+`HAPROXY_TLS_HOST`, `HAPROXY_TLS_PORT`. CSV:
+
+```text
+timestamp,service,target_file,invalid_file,config_result,tls_invalid_result,restore_result,result
+```
