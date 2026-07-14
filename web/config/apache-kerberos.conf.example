@@ -18,7 +18,7 @@
         AuthName "MiniIdM Kerberos"
         GssapiSSLonly On
         GssapiLocalName Off
-        GssapiAcceptorName HTTP/web.fis.epn.ec@FIS.EPN.EC
+        GssapiAcceptorName HTTP@web.fis.epn.ec
         GssapiCredStore keytab:/etc/apache2/miniidm/web.keytab
         Require valid-user
     </Location>
