@@ -18,3 +18,9 @@ kerberos/principals/keytabs/*
 results/raw/*
 !results/raw/.gitkeep
 !results/raw/test-results.csv
+
+results/experiments/*
+!results/experiments/.gitkeep
+
+results/faults/*
+!results/faults/.gitkeep
