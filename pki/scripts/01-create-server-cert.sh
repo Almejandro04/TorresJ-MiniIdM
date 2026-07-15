@@ -71,9 +71,11 @@ openssl x509 \
     -extensions v3_req \
     -extfile "$SERVER_CONFIG_TMP"
 
+
 rm -f "$SERVER_CONFIG_TMP"
 
-print_ok "Creacion de certificado correcta"
+print_ok "Creacion correcta de certificado"
 print_info "Clave privada: $SERVER_KEY"
 print_info "CSR: $SERVER_CSR"
 print_info "Certificado: $SERVER_CERT"
+
