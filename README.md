@@ -1,84 +1,120 @@
 # TorresJ-MiniIdM
 
-Secure identity infrastructure for the FIS distributed systems project.
+Infraestructura de identidad segura para el proyecto de Sistemas Distribuidos
+de FIS. Integra OpenLDAP, MIT Kerberos, una PKI ECDSA, Apache con TLS y
+Kerberos, HAProxy, Prometheus y pruebas funcionales y de fallos.
 
-## Scope
+## Servicios y nombres
 
-```text
-LDAP base DN: dc=fis,dc=epn,dc=ec
-Kerberos realm: FIS.EPN.EC
-LDAP frontend: ldap.fis.epn.edu.ec
-LDAP nodes: ldap1 and ldap2
-KDC nodes: kdc1 and kdc2
-Web service: web.fis.epn.ec
-```
+| Elemento | Valor |
+|---|---|
+| Base DN de LDAP | `dc=fis,dc=epn,dc=ec` |
+| Realm de Kerberos | `FIS.EPN.EC` |
+| Frontend LDAP | `ldap.fis.epn.edu.ec:1636` |
+| Servicio web | `https://web.fis.epn.ec/` |
+| KDC primario y secundario | `kdc1.fis.epn.ec` y `kdc2.fis.epn.ec` |
 
-The project includes OpenLDAP, MIT Kerberos, an ECDSA PKI, Apache TLS Kerberos, HAProxy, Prometheus and fault tests.
+## Topologia final
 
-## Final two-VM topology
+La implementacion usa dos VM. Los nombres `ldap1`, `ldap2`, `kdc1` y `kdc2`
+son roles logicos que resuelven a la VM indicada.
 
-La implementacion desplegada usa solamente dos VM: `idm1`
-(`192.168.56.10`) aloja la CA raiz ECDSA, `ldap1`, `kdc1`, Apache, HAProxy,
-Prometheus y node exporter; `idm2` (`192.168.56.11`) aloja `ldap2`, `kdc2`,
-el cliente de pruebas y node exporter. `ldap1`, `ldap2`, `kdc1` y `kdc2` son
-nombres y roles logicos que resuelven a su VM correspondiente.
+| VM | IP | Roles |
+|---|---|---|
+| `idm1` | `192.168.56.10` | CA raiz ECDSA, ldap1, kdc1, Apache, HAProxy, Prometheus y node exporter |
+| `idm2` | `192.168.56.11` | ldap2, kdc2, cliente de pruebas y node exporter |
 
-HAProxy, Apache y Prometheus existen solo en idm1. LDAP tiene un maestro de
-escritura (`ldap1`) y una replica (`ldap2`): HAProxy usa `ldap1` normalmente y
-activa `ldap2` como respaldo para lecturas cuando el maestro no responde. No
-hay alta disponibilidad de escritura ni LDAP multimaster. Kerberos puede
-emitir tickets desde `kdc2` cuando `kdc1` falla.
+LDAP usa `ldap1` como maestro de escritura y `ldap2` como replica. HAProxy
+atiende en el puerto externo `1636`, utiliza `ldap1` normalmente y activa
+`ldap2` como respaldo para consultas de lectura. Kerberos puede emitir tickets
+desde `kdc2` cuando `kdc1` no esta disponible.
 
-No existen VIP, Keepalived, un tercer nodo, un segundo HAProxy ni un segundo
-Apache. La alta disponibilidad se limita a LDAP y Kerberos; la perdida
-completa de idm1 no esta cubierta.
+No hay VIP, Keepalived, un tercer nodo, un segundo HAProxy ni un segundo
+Apache. Por tanto, la perdida completa de `idm1` no esta cubierta y no existe
+alta disponibilidad de escritura LDAP.
 
-## Quick review
+## Antes de desplegar
 
-```text
+Se requiere Ubuntu Server 26.04 en las dos VM, acceso `root` o `sudo`, los
+nombres del laboratorio resueltos y conectividad entre los nodos. El plan de
+DNS y las entradas de `/etc/hosts` estan en
+[inventory/](inventory/). Los comandos que instalan o modifican servicios se
+ejecutan en la VM correspondiente con privilegios de administrador.
+
+Para revisar el repositorio y conocer los objetivos disponibles:
+
+```bash
 make check
 make inventory
 make help
-make ldap
-make kerberos
-make integration
-make web
-make ha
-make monitoring
 make test
 ```
 
-The Makefile lists the deployment order. System deployment commands must run in the corresponding Linux VM with root privileges.
+`make ldap`, `make kerberos`, `make integration`, `make web`, `make ha` y
+`make monitoring` muestran el orden recomendado; no despliegan por si solos
+los servicios. El procedimiento completo, separado por VM y con el orden
+correcto de los componentes, esta en [docs/deployment.md](docs/deployment.md).
 
-## Repository layout
+Puntos importantes del despliegue:
+
+- Cargar el DIT y configurar `syncprov` en `idm1` antes de configurar el
+  consumidor de replicacion en `idm2`.
+- Ejecutar `kerberos/scripts/01-init-realm.sh` solamente en `idm1`.
+- Copiar de forma segura el keytab y el *stash* requeridos a `idm2`; la base
+  del KDC secundario llega mediante `kprop`.
+- Generar los hashes LDAP localmente cuando el script los solicite; los
+  marcadores `REPLACE_WITH_*` del repositorio no contienen secretos reales.
+
+## Estructura del repositorio
 
 ```text
-docs/        Architecture, deployment and testing documents
-inventory/   Node and DNS plan
-pki/         OpenSSL CA and certificate scripts
-ldap/        LDAP DIT, TLS and deployment scripts
-kerberos/    MIT Kerberos configuration and scripts
-integration/ LDAP Kerberos user mapping
-web/         Apache TLS Kerberos service
-ha/          HAProxy LDAP frontend
-monitoring/  Prometheus configuration
-tests/       Functional and fault tests
-results/     CSV evidence and report material
+docs/        Arquitectura, despliegue, seguridad y plan de pruebas
+inventory/   Topologia, DNS y ejemplo de /etc/hosts
+pki/         CA OpenSSL ECDSA y certificados de servidor
+ldap/        DIT, TLS, replicacion y scripts OpenLDAP
+kerberos/    Realm, principals, keytabs y propagacion del KDC
+integration/ Validaciones entre usuarios LDAP y principals Kerberos
+web/         Apache con TLS y mod_auth_gssapi
+ha/          HAProxy para el frontend LDAP
+monitoring/  Prometheus, node exporter y metricas propias
+tests/       Pruebas funcionales y de inyeccion de fallos
+fault-tests/ Experimentos controlados que alteran servicios o red
+results/     Evidencia de las mediciones y material para el informe
 ```
 
-## Security
+## Validacion y resultados
 
-Generated private keys, certificates, CSR files, CA state, keytabs and raw results are ignored by Git. Do not commit passwords, hashes, keytabs or private keys.
+Las pruebas automaticas se ejecutan solo cuando las VM ya estan configuradas:
 
-For the Kerberos secondary KDC, the service aliases `kdc1`/`kdc2` and the real host names `idm1`/`idm2` both require host principals. The secondary is bootstrapped only through a protected `kdb5_util dump` and `kprop`; do not run the realm-initialization script on idm2 or commit its stash. See [`kerberos/README.md`](kerberos/README.md) for the required order on Ubuntu Server 26.04.
+```bash
+make test-run
+```
 
-If generated keys were committed before this rule, remove them from the Git index and rotate them before publishing the repository.
+Incluyen consultas LDAP/LDAPS, autenticacion Kerberos, tickets de servicio,
+TLS web y HAProxy. Las pruebas de fallos pueden detener servicios o insertar
+reglas de `iptables`; deben ejecutarse exclusivamente en el laboratorio y con
+el mecanismo `--apply` cuando el script lo requiera. Consulta los detalles en
+[tests/README.md](tests/README.md) y [fault-tests/README.md](fault-tests/README.md).
 
-## Final report
-
-The final individual report must be a two page PDF named `TorresJ-MiniIdM.pdf` and must include the GitHub URL and external assistance disclosure.
-
-## Resultados reales
-
-Las mediciones finales ejecutadas el 14 de julio de 2026 estan resumidas en
+Las mediciones finales ejecutadas el 14 de julio de 2026 se resumen en
 [RESULTADOS.md](RESULTADOS.md).
+
+## Seguridad
+
+No se versionan claves privadas, certificados generados, CSR, estado de la
+CA, contrasenas, hashes reales, keytabs, *stash* de Kerberos ni resultados
+crudos. Si alguno de estos elementos se hubiese publicado, hay que retirarlo
+del indice de Git y rotarlo antes de compartir el repositorio.
+
+Para el KDC secundario, tanto los alias `kdc1`/`kdc2` como los nombres reales
+`idm1`/`idm2` requieren principals de host. La propagacion usa un dump
+protegido de `kdb5_util` y `kprop`; nunca se debe inicializar un realm nuevo en
+`idm2`. El detalle operativo esta en [kerberos/README.md](kerberos/README.md).
+
+## Documentacion complementaria
+
+- [Arquitectura](docs/architecture.md)
+- [Despliegue](docs/deployment.md)
+- [Notas de seguridad](docs/security-notes.md)
+- [Plan de pruebas](docs/testing-plan.md)
+- [Esquema del informe](docs/report-outline.md)

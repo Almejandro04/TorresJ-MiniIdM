@@ -8,10 +8,7 @@ PROJECT_NAME="TorresJ-MiniIdM"
 
 print_title() {
     local message="$1"
-    echo ""
-    echo "==========================="
-    echo "$message"
-    echo "==========================="
+    printf '\n- %s -\n' "${message^^}"
 }
 
 print_info() {

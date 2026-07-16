@@ -34,7 +34,7 @@ Add these entries to `/etc/hosts` on both VM.
 
 ### idm1
 
-Run as root:
+Ejecutar como root:
 
 ```text
 make pki
@@ -44,6 +44,19 @@ make ldap-config-apply
 make ldap-certs LDAP_NODE=ldap1
 make ldap-enable-ldaps LDAP_NODE=ldap1
 make ldap-enable-ldaps-listener
+```
+
+Ejecutar como usuario normal:
+
+```text
+make ldap-hash
+```
+
+Reemplazar los marcadores de contrasena de los LDIF solo en la copia local. No
+guardar los hashes reales en Git. Despues, continuar como root:
+
+```text
+make ldap-load
 make ldap-syncprov
 bash kerberos/scripts/00-install-kerberos.sh
 bash kerberos/scripts/01-init-realm.sh
@@ -51,19 +64,13 @@ make kerberos-users
 make kerberos-services
 make kerberos-keytabs
 make kerberos-host-keytabs
+sudo bash web/scripts/00-install-web-deps.sh
+sudo bash web/scripts/01-start-web.sh
 sudo bash ha/scripts/00-install-haproxy.sh
 sudo bash ha/scripts/01-configure-ldap-lb.sh
 sudo bash monitoring/scripts/00-install-monitoring.sh
 sudo bash monitoring/scripts/01-start-prometheus.sh
 ```
-
-Run as normal user:
-
-```text
-make ldap-hash
-```
-
-Replace LDAP password placeholders locally before `make ldap-load`.
 
 ### idm2
 
@@ -79,6 +86,7 @@ make ldap-replication-consumer
 bash kerberos/scripts/00-install-kerberos.sh
 # Copiar idm2.keytab a /etc/krb5.keytab y el stash de idm1 a /etc/krb5kdc/stash
 bash kerberos/scripts/06-configure-secondary-kdc.sh
+sudo bash monitoring/scripts/00-install-monitoring.sh
 ```
 
 El script del consumidor solicita de forma oculta la contrasena de
