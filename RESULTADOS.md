@@ -28,15 +28,15 @@ Pruebas reales ejecutadas el 14 de julio de 2026.
 | Diferencia porcentual | 106.09 % |
 
 Diferencia de latencia total observada entre consultas LDAP y LDAPS. No se
-interpreta como tiempo puro del handshake TLS.
+interpreta como tiempo puro del establecimiento TLS.
 
-## Throughput HAProxy
+## Rendimiento de HAProxy
 
 | Medida | Resultado |
 |---|---:|
 | Solicitudes | 100 |
 | Concurrencia | 5 |
-| Throughput | 41.84 solicitudes por segundo |
+| Rendimiento | 41.84 solicitudes por segundo |
 | Latencia promedio | 112.60 ms |
 | Exitosas | 100 |
 | Fallidas | 0 |
@@ -55,7 +55,7 @@ Valores observados: 130 ms, 140 ms, 420 ms, 120 ms y 500 ms.
 
 Retardo extremo a extremo observado.
 
-## Failover LDAP
+## Conmutación por error de LDAP
 
 | Medida | Resultado |
 |---|---:|
@@ -69,18 +69,18 @@ HAProxy necesita para detectar la caída del servidor principal y activar
 `ldap2` como servidor de respaldo. No representa el tiempo de estabilidad
 total del balanceador.
 
-## Failover Kerberos
+## Conmutación por error de Kerberos
 
 | Medida | Resultado |
 |---|---:|
 | Linea base | 140 ms |
 | KDC de linea base | 192.168.56.10 |
-| Failover | 160 ms |
+| Conmutación por error | 160 ms |
 | KDC secundario utilizado | 192.168.56.11 |
-| Overhead observado | 20 ms |
+| Sobrecarga observada | 20 ms |
 | Resultado | correcto |
 
-## Crash de Apache mediante kill -9
+## Caída de Apache mediante kill -9
 
 | Medida | Resultado |
 |---|---:|

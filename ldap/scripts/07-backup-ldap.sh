@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 source "$PROJECT_DIR/scripts/common.sh"
 
-print_title "Backup LDAP"
+print_title "Respaldo LDAP"
 
 BASE_DN="dc=fis,dc=epn,dc=ec"
 LDAP_URI="${1:-ldap://localhost}"
@@ -22,4 +22,4 @@ print_info "Archivo destino: $BACKUP_FILE"
 
 ldapsearch -x -H "$LDAP_URI" -b "$BASE_DN" "(objectClass=*)" > "$BACKUP_FILE"
 
-print_ok "Backup LDAP generado"
+print_ok "Respaldo LDAP generado"

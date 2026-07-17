@@ -10,7 +10,7 @@ Kerberos, HAProxy, Prometheus y pruebas funcionales y de fallos.
 |---|---|
 | Base DN de LDAP | `dc=fis,dc=epn,dc=ec` |
 | Realm de Kerberos | `FIS.EPN.EC` |
-| Frontend LDAP | `ldap.fis.epn.edu.ec:1636` |
+| Punto de acceso LDAP | `ldap.fis.epn.edu.ec:1636` |
 | Servicio web | `https://web.fis.epn.ec/` |
 | KDC primario y secundario | `kdc1.fis.epn.ec` y `kdc2.fis.epn.ec` |
 
@@ -57,12 +57,12 @@ correcto de los componentes, esta en [docs/deployment.md](docs/deployment.md).
 
 Puntos importantes del despliegue:
 
-- Cargar el DIT y configurar `syncprov` en `idm1` antes de configurar el
-  consumidor de replicacion en `idm2`.
-- Ejecutar `kerberos/scripts/01-init-realm.sh` solamente en `idm1`.
-- Copiar de forma segura el keytab y el *stash* requeridos a `idm2`; la base
-  del KDC secundario llega mediante `kprop`.
-- Generar los hashes LDAP localmente cuando el script los solicite; los
+- El DIT se carga y `syncprov` se configura en `idm1` antes de configurar el
+  consumidor de replicación en `idm2`.
+- `kerberos/scripts/01-init-realm.sh` se ejecuta solamente en `idm1`.
+- El keytab y el *stash* requeridos se copian de forma segura a `idm2`; la
+  base del KDC secundario llega mediante `kprop`.
+- Los hashes LDAP se generan localmente cuando el script los solicita; los
   marcadores `REPLACE_WITH_*` del repositorio no contienen secretos reales.
 
 ## Estructura del repositorio
@@ -75,7 +75,7 @@ ldap/        DIT, TLS, replicacion y scripts OpenLDAP
 kerberos/    Realm, principals, keytabs y propagacion del KDC
 integration/ Validaciones entre usuarios LDAP y principals Kerberos
 web/         Apache con TLS y mod_auth_gssapi
-ha/          HAProxy para el frontend LDAP
+ha/          HAProxy para el punto de acceso LDAP
 monitoring/  Prometheus, node exporter y metricas propias
 tests/       Pruebas funcionales y de inyeccion de fallos
 fault-tests/ Experimentos controlados que alteran servicios o red
@@ -93,8 +93,9 @@ make test-run
 Incluyen consultas LDAP/LDAPS, autenticacion Kerberos, tickets de servicio,
 TLS web y HAProxy. Las pruebas de fallos pueden detener servicios o insertar
 reglas de `iptables`; deben ejecutarse exclusivamente en el laboratorio y con
-el mecanismo `--apply` cuando el script lo requiera. Consulta los detalles en
-[tests/README.md](tests/README.md) y [fault-tests/README.md](fault-tests/README.md).
+el mecanismo `--apply` cuando el script lo requiera. Los detalles se
+encuentran en [tests/README.md](tests/README.md) y
+[fault-tests/README.md](fault-tests/README.md).
 
 Las mediciones finales ejecutadas el 14 de julio de 2026 se resumen en
 [RESULTADOS.md](RESULTADOS.md).

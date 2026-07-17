@@ -13,7 +13,9 @@ esta cubierta. La alta disponibilidad se limita a LDAP y Kerberos.
 Prometheus recolecta CPU y memoria desde node exporter en ambas IP fisicas, no
 una vez por cada rol logico.
 
-El script `02-check-services.sh` genera metricas basicas de estado de servicios, consulta LDAP y puerto KDC en el directorio textfile de node exporter.
+El script `02-check-services.sh` genera metricas basicas del estado de los
+servicios, de la consulta LDAP y del puerto KDC en el directorio de archivos de
+texto de node exporter.
 
 ## Despliegue
 
@@ -35,7 +37,8 @@ En el nodo que ejecuta las comprobaciones:
 sudo bash monitoring/scripts/02-check-services.sh
 ```
 
-Programar el ultimo comando con cron o systemd timer si se requiere recoleccion periodica.
+El ultimo comando se programa con cron o un temporizador de systemd si se
+requiere recoleccion periodica.
 
 La consulta LDAP usa `LDAP_URI` (por defecto `ldap://ldap1.fis.epn.ec`) y un
 reloj monotono de `/proc/uptime`. Puede ajustarse el limite con

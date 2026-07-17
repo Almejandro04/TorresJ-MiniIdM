@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 source "$PROJECT_DIR/scripts/common.sh"
 
-print_title "Prueba LDAP search"
+print_title "Prueba de búsqueda LDAP"
 
 LDAP_URI="${1:-ldap://localhost}"
 BASE_DN="dc=fis,dc=epn,dc=ec"

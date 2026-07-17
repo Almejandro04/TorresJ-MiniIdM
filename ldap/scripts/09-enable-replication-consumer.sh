@@ -51,7 +51,7 @@ if ! grep -Fq 'credentials=REPLACE_WITH_PASSWORD' "$CONSUMER_LDIF"; then
 fi
 
 if [ "$DRY_RUN" = true ]; then
-    print_info "Dry-run: plantilla validada; no se consulto ni modifico cn=config"
+    print_info "Simulación: la plantilla fue validada; cn=config no fue consultado ni modificado"
     exit 0
 fi
 
@@ -82,7 +82,7 @@ else
     escaped_password="$(printf '%s' "$REPLICATION_PASSWORD" | sed -e 's/[\\&|]/\\&/g')"
     sed -i "s|REPLACE_WITH_PASSWORD|$escaped_password|g" "$TEMP_LDIF"
 
-    print_info "Aplicando configuracion consumer"
+    print_info "Aplicando la configuración del consumidor"
     ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f "$TEMP_LDIF"
 fi
 

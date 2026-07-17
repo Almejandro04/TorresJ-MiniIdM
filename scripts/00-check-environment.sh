@@ -22,7 +22,7 @@ print_ok "Herramientas basicas encontradas"
 print_info "Sistema: "
 uname -a
 
-print_info "Hostname actual: "
+print_info "Nombre de host actual: "
 hostname
 
 print_info "Direcciones IP:"

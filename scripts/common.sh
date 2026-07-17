@@ -13,12 +13,12 @@ print_title() {
 
 print_info() {
     local message="$1"
-    echo "[INFO] $message"
+    echo "[INFORMACIÓN] $message"
 }
 
 print_ok() {
     local message="$1"
-    echo "[OK] $message"
+    echo "[CORRECTO] $message"
 }
 
 print_error() {

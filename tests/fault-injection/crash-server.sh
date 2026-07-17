@@ -12,4 +12,4 @@ if [ -z "$PROCESS_ID" ]; then
 fi
 
 kill -9 "$PROCESS_ID"
-echo "[OK] Proceso detenido: $PROCESS_ID"
+echo "[CORRECTO] Proceso detenido: $PROCESS_ID"

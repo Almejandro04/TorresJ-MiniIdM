@@ -1,9 +1,12 @@
 # Pruebas
 
-Las pruebas requieren las VM configuradas y nombres DNS resolubles. Ejecutar primero `bash tests/scripts/run-tests.sh` para listar el conjunto.
+Las pruebas requieren las VM configuradas y nombres DNS resolubles. El conjunto
+se lista primero con `bash tests/scripts/run-tests.sh`.
 
-Las pruebas de fallos cambian servicios o reglas iptables. Ejecutarlas solo en las VM de laboratorio y restaurar el estado despues de cada experimento.
+Las pruebas de fallos cambian servicios o reglas de iptables. Se ejecutan solo
+en las VM de laboratorio y el estado se restaura despues de cada experimento.
 
 ## Evidencias
 
-Registrar los resultados en `results/tables/` con fecha, nodo, metrica y resultado.
+Los resultados se registran en `results/tables/` con fecha, nodo, metrica y
+resultado.

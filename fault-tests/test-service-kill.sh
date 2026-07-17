@@ -69,7 +69,7 @@ if [ "$OLD_MAIN_PID" -le 0 ]; then
 fi
 
 if [ "$APPLY" = false ]; then
-    print_info "Dry-run: se ejecutaria kill -9 sobre PID $OLD_MAIN_PID de $SERVICE_NAME"
+    print_info "Simulación: se ejecutaría kill -9 sobre el PID $OLD_MAIN_PID de $SERVICE_NAME"
     print_info "Restart=$RESTART_POLICY; se exigiria un MainPID nuevo y una comprobacion funcional"
     exit 0
 fi

@@ -12,4 +12,4 @@ if openssl verify -CAfile "$CA_CERT" "$EXPIRED_CERT"; then
     exit 1
 fi
 
-echo "[OK] Certificado expirado rechazado"
+echo "[CORRECTO] Certificado expirado rechazado"

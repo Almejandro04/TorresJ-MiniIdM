@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# prueba failover KDC
+# prueba de conmutación por error del KDC
 
 set -euo pipefail
 

@@ -35,13 +35,13 @@ run_test() {
 
     if ! getent hosts "$target" >/dev/null 2>&1; then
         bash "$RESULT_WRITER" "$test_name" "$target" SKIPPED 0 "DNS no disponible"
-        echo "[SKIPPED] $test_name: DNS no disponible para $target"
+        echo "[OMITIDA] $test_name: DNS no disponible para $target"
         return 0
     fi
 
     if ! timeout 3 bash -c "</dev/tcp/$target/$port" >/dev/null 2>&1; then
         bash "$RESULT_WRITER" "$test_name" "$target" SKIPPED 0 "Servicio no disponible en puerto $port"
-        echo "[SKIPPED] $test_name: puerto $port no disponible en $target"
+        echo "[OMITIDA] $test_name: puerto $port no disponible en $target"
         return 0
     fi
 
@@ -49,11 +49,11 @@ run_test() {
     if bash "$test_script"; then
         end_time="$(date +%s%3N)"
         bash "$RESULT_WRITER" "$test_name" "$target" OK "$((end_time - start_time))" "Prueba completada"
-        echo "[OK] $test_name"
+        echo "[CORRECTO] $test_name"
     else
         end_time="$(date +%s%3N)"
         bash "$RESULT_WRITER" "$test_name" "$target" FAILED "$((end_time - start_time))" "La prueba devolvio error"
-        echo "[FAILED] $test_name" >&2
+        echo "[FALLIDA] $test_name" >&2
     fi
 }
 

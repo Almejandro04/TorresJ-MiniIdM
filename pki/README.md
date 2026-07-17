@@ -2,12 +2,13 @@
 
 ## Objetivo
 
-Esta carpeta contiene los archivos necesarios para construir la infraestructura de llave publica del proyecto MiniIdM.
+Esta carpeta contiene los archivos necesarios para construir la infraestructura
+de clave publica del proyecto MiniIdM.
 
-La PKI se usara para emitir certificados TLS para:
+La PKI se utiliza para emitir certificados TLS para:
 
-- LDAP master.
-- LDAP replica.
+- LDAP maestro.
+- LDAP réplica.
 - KDC Kerberos primario.
 - KDC Kerberos secundario.
 - Servicio web.
@@ -15,11 +16,11 @@ La PKI se usara para emitir certificados TLS para:
 
 ## Requisitos del proyecto
 
-- Usar OpenSSL.
-- Crear una CA raiz.
-- Emitir certificados usando ECDSA.
-- Usar certificados para LDAP sobre TLS.
-- Verificar certificados con `openssl s_client`.
+- Se utiliza OpenSSL.
+- Se crea una CA raiz.
+- Se emiten certificados mediante ECDSA.
+- Se utilizan certificados para LDAP sobre TLS.
+- Los certificados se verifican con `openssl s_client`.
 
 ## Estructura
 
@@ -47,6 +48,6 @@ pki/
 
 ## Notas de seguridad
 
-No se deben subir claves privadas reales al repositorio.
+Las claves privadas reales no se suben al repositorio.
 
-Los archivos dentro de `pki/private/` deben mantenerse fuera de GitHub.
+Los archivos dentro de `pki/private/` se mantienen fuera de GitHub.

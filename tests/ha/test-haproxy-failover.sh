@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# prueba failover HAProxy
+# prueba de conmutación por error de HAProxy
 
 set -euo pipefail
 

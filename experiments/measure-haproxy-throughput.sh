@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# mide throughput LDAP mediante un pool de workers Bash
+# mide el rendimiento LDAP mediante un grupo de procesos de trabajo de Bash
 
 set -euo pipefail
 
@@ -18,7 +18,7 @@ QUERY_TIMEOUT_SECONDS="${QUERY_TIMEOUT_SECONDS:-5}"
 RESULT_FILE="$PROJECT_DIR/results/experiments/haproxy-throughput.csv"
 RESULT_DIR=""
 
-print_title "Medicion de throughput HAProxy LDAP"
+print_title "Medición del rendimiento LDAP mediante HAProxy"
 
 require_command ldapsearch
 require_command timeout
@@ -30,7 +30,7 @@ check_file_exists "$CA_CERT"
 initialize_csv "$RESULT_FILE" "requests,concurrency,total_seconds,requests_per_second,average_latency_ms,successes,failures"
 
 if ! help wait 2>/dev/null | grep -q -- '-n'; then
-    print_error "Este script requiere Bash con wait -n para implementar el worker pool"
+    print_error "Este script requiere Bash con wait -n para implementar el grupo de procesos de trabajo"
     exit 1
 fi
 
@@ -103,7 +103,7 @@ for result_file in "$RESULT_DIR"/*; do
         ok) successes="$((successes + 1))" ;;
         failed) failures="$((failures + 1))" ;;
         *)
-            print_error "Resultado invalido del worker $request_number"
+            print_error "Resultado invalido del proceso de trabajo $request_number"
             exit 1
             ;;
     esac
@@ -121,4 +121,4 @@ requests_per_second="$(awk -v requests="$REQUESTS" -v milliseconds="$elapsed_ms"
 average_latency_ms="$(printf '%s\n' "${latencies[@]}" | awk '{ sum += $1 } END { printf "%.2f", sum / NR }')"
 
 append_csv_row "$RESULT_FILE" "$REQUESTS" "$CONCURRENCY" "$total_seconds" "$requests_per_second" "$average_latency_ms" "$successes" "$failures"
-print_ok "Throughput: $requests_per_second req/s; latencia promedio=${average_latency_ms} ms; exitosas=$successes, fallidas=$failures"
+print_ok "Rendimiento: $requests_per_second solicitudes/s; latencia promedio=${average_latency_ms} ms; exitosas=$successes, fallidas=$failures"

@@ -108,7 +108,7 @@ tls_client_check() {
 }
 
 if [ "$APPLY" = false ]; then
-    print_info "Dry-run: se validaron formato y compatibilidad de INVALID_FILE sin modificar $TARGET_FILE"
+    print_info "Simulación: se validaron el formato y la compatibilidad de INVALID_FILE sin modificar $TARGET_FILE"
     print_info "Con --apply se respaldara el archivo, se esperara rechazo TLS del cliente y se restaurara mediante trap"
     exit 0
 fi

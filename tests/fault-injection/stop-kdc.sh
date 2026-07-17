@@ -5,4 +5,4 @@
 set -euo pipefail
 
 systemctl stop krb5-kdc
-echo "[OK] Servicio krb5-kdc detenido"
+echo "[CORRECTO] Servicio krb5-kdc detenido"

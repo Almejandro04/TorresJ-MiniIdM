@@ -1,10 +1,10 @@
 # Pruebas de fallos controladas
 
 La topologia tiene dos VM: idm1 aloja ldap1, kdc1, Apache, HAProxy, Prometheus
-y la CA; idm2 aloja ldap2, kdc2 y el cliente. Todos los scripts son
-**dry-run por defecto**; ejecutar primero sin `--apply`. Solo `--apply` permite
-detener, matar, reiniciar, insertar reglas o reemplazar archivos. No usarlos en
-produccion.
+y la CA; idm2 aloja ldap2, kdc2 y el cliente. Todos los scripts se ejecutan en
+**modo de simulacion por defecto**; primero se ejecutan sin `--apply`. Solo
+`--apply` permite detener, finalizar, reiniciar, insertar reglas o reemplazar
+archivos. No se utilizan en produccion.
 
 Los resultados se crean al ejecutar las pruebas en `results/faults/`; no hay
 resultados inventados ni archivos de secretos en Git.
@@ -12,25 +12,28 @@ resultados inventados ni archivos de secretos en Git.
 ## Riesgos y recuperacion manual
 
 - `kill -9`, la particion de red y el certificado temporal pueden interrumpir
-  clientes en curso; no los ejecute durante mantenimiento LDAP o Kerberos.
-- Si un servicio no vuelve, inicie solo el servicio afectado con
-  `sudo systemctl start NOMBRE_SERVICIO` y valide antes de continuar.
-- Si queda un backup de certificado, copie el archivo mostrado por el script a
-  `TARGET_FILE` con `sudo cp --preserve=mode,ownership BACKUP TARGET_FILE`,
-  ejecute el configtest correspondiente y reinicie `apache2` o `haproxy`.
+  clientes en curso; no se ejecutan durante el mantenimiento de LDAP o
+  Kerberos.
+- Si un servicio no vuelve, solo se inicia el servicio afectado con
+  `sudo systemctl start NOMBRE_SERVICIO` y su funcionamiento se valida antes de
+  continuar.
+- Si queda un respaldo de certificado, el archivo mostrado por el script se
+  copia a `TARGET_FILE` con
+  `sudo cp --preserve=mode,ownership RESPALDO TARGET_FILE`, se ejecuta la
+  prueba de configuracion correspondiente y se reinicia `apache2` o `haproxy`.
 
 ## Orden recomendado
 
-1. TLS overhead LDAP.
-2. Throughput HAProxy.
+1. Sobrecarga TLS LDAP.
+2. Rendimiento de HAProxy.
 3. Replicacion LDAP.
-4. Failover LDAP.
-5. Failover KDC.
-6. Kill de servicio.
+4. Conmutacion por error de LDAP.
+5. Conmutacion por error del KDC.
+6. Finalizacion de servicio.
 7. Particion de red.
 8. Certificado invalido.
 
-## Failover LDAP — idm1
+## Conmutacion por error de LDAP — idm1
 
 ```bash
 sudo bash fault-tests/test-ldap-failover.sh
@@ -50,10 +53,10 @@ Variables: `LDAP_URI`, `LDAP1_URI`, `LDAP_BASE_DN`, `LDAP_FILTER`, `CA_CERT`,
 timestamp,failover_ms,restore_ms,ldap_direct_after,result
 ```
 
-La confirmacion de backend concreto es opcional porque HAProxy no expone ese
+La confirmacion de un servidor concreto es opcional porque HAProxy no expone ese
 dato de forma segura sin instrumentacion adicional.
 
-## Failover KDC — idm2 o cliente
+## Conmutacion por error del KDC — idm2 o cliente
 
 ```bash
 KRB_TEST_KEYTAB=/ruta/protegida/test.keytab \
@@ -61,13 +64,14 @@ KRB_TEST_PRINCIPAL=usuario-prueba@FIS.EPN.EC \
 bash fault-tests/test-kdc-failover.sh --manual
 ```
 
-El keytab de prueba es obligatorio, debe existir y no ser world-readable.
+El keytab de prueba es obligatorio, debe existir y no ser legible por cualquier
+usuario.
 **Nunca se versiona**, imprime ni se copia al repositorio. La medicion usa
 `kinit -k -t`, elimina tickets antes de cada intento y verifica `klist -s`.
-Un trace temporal `KRB5_TRACE` identifica, si es posible, el KDC que respondio
+Una traza temporal `KRB5_TRACE` identifica, si es posible, el KDC que respondio
 y se borra con el `trap`.
 
-Para ejecutar de verdad:
+La ejecucion real se realiza con:
 
 ```bash
 KRB_TEST_KEYTAB=/ruta/protegida/test.keytab \
@@ -93,13 +97,13 @@ el KDC. Variables: `KRB_TEST_KEYTAB`, `KRB_TEST_PRINCIPAL`,
 timestamp,mode,principal,baseline_ms,failover_ms,kdc_used,result
 ```
 
-Si la restauracion manual falla, en idm1 ejecute:
+Si la restauracion manual falla, en idm1 se ejecuta:
 
 ```bash
 sudo systemctl start krb5-kdc
 ```
 
-## Kill de servicio — nodo propietario
+## Finalizacion de servicio — nodo propietario
 
 ```bash
 sudo bash fault-tests/test-service-kill.sh haproxy
@@ -135,8 +139,9 @@ directo falle durante el bloqueo, y TCP/LDAP tras retirarlo. En idm1 puede
 comprobar HAProxy con `HAPROXY_DURING_CHECK=true`; es una observacion adicional.
 Las reglas se etiquetan y se guardan exactamente en
 `network-partition-rules.txt`; el `trap` elimina solo las que alcanzaron a
-insertarse. Si una restauracion falla, usar `iptables -S` para localizar la
-etiqueta `miniidm-ldap-partition-...` y eliminar esas reglas con `iptables -D`.
+insertarse. Si una restauracion falla, se utiliza `iptables -S` para localizar
+la etiqueta `miniidm-ldap-partition-...` y esas reglas se eliminan con
+`iptables -D`.
 
 Variables: `LDAP_PORT`, `PARTITION_SECONDS`, `TOTAL_TIMEOUT_SECONDS`,
 `REMOTE_IP`, `REMOTE_LDAP_URI`, `LDAP_BASE_DN`, `LDAP_FILTER`, `CA_CERT`,
@@ -155,15 +160,16 @@ sudo INVALID_FILE=/ruta/certificado-prueba.pem \
 
 `INVALID_FILE` es obligatorio y no se genera automaticamente. Para Apache debe
 ser certificado PEM; el script compara su clave publica con la clave instalada
-y documenta un posible rechazo por mismatch. Para HAProxy debe ser un PEM
+e informa sobre un posible rechazo por incompatibilidad. Para HAProxy debe ser un PEM
 completo con certificado y clave compatibles, pero que el cliente rechace por
-expiracion, CA incorrecta u hostname.
+expiracion, CA incorrecta o nombre de host incorrecto.
 
-Con `--apply` valida el servicio y TLS actual, conserva backup, permisos y
-ownership, ejecuta configtest sin abortar, reinicia temporalmente si procede y
-comprueba el rechazo TLS desde cliente. Finalmente restaura, valida config,
-reinicia y confirma TLS valido antes de borrar el backup. Si falla, conserva el
-respaldo y muestra la ruta para recuperacion manual.
+Con `--apply`, el script valida el servicio y TLS actuales, conserva el
+respaldo, los permisos y el propietario, ejecuta la prueba de configuracion sin
+abortar, reinicia temporalmente si procede y comprueba el rechazo TLS desde el
+cliente. Finalmente restaura, valida la configuracion, reinicia y confirma TLS
+valido antes de borrar el respaldo. Si falla, conserva el respaldo y muestra la
+ruta para la recuperacion manual.
 
 ```bash
 sudo INVALID_FILE=/ruta/certificado-prueba.pem \

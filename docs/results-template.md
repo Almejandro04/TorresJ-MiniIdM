@@ -1,13 +1,14 @@
-# Results template
+# Plantilla de resultados
 
-Store evidence in `results/tables/`.
+La evidencia se guarda en `results/tables/`.
 
-| Experiment | Input | Metric | Evidence |
+| Experimento | Entrada | Métrica | Evidencia |
 |---|---|---|---|
-| LDAP replication | Add testreplica in ldap1 | propagation_ms | ldap-replication.csv |
-| KDC failover | Stop primary KDC | authentication_ms | kdc-failover.csv |
-| TLS overhead | Compare LDAP and LDAPS | latency_ms | tls-overhead.csv |
-| HA throughput | LDAP requests through frontend | requests_per_second | lb-throughput.csv |
-| Node faults | kill, iptables or certificate | recovery_ms | node-failures.csv |
+| Replicación LDAP | Se agrega `testreplica` en ldap1 | propagation_ms | ldap-replication.csv |
+| Conmutación por error del KDC | Se detiene el KDC primario | authentication_ms | kdc-failover.csv |
+| Sobrecarga de TLS | Se comparan LDAP y LDAPS | latency_ms | tls-overhead.csv |
+| Rendimiento de HAProxy | Se envían solicitudes LDAP mediante el frontal | requests_per_second | lb-throughput.csv |
+| Fallos de nodo | Se usa `kill`, `iptables` o un certificado | recovery_ms | node-failures.csv |
 
-Record date, node names, command, metric value and result for every run.
+En cada ejecución se registran la fecha, los nombres de nodo, el comando, el
+valor de la métrica y el resultado.

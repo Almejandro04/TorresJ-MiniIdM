@@ -21,7 +21,7 @@ fi
 LDAP_NODE="$1"
 
 if [ "$LDAP_NODE" != "ldap1" ] && [ "$LDAP_NODE" != "ldap2" ]; then
-    print_error "Nodo invalido. Usar ldap1 o ldap2"
+    print_error "Nodo invalido. Se utiliza ldap1 o ldap2"
     exit 1
 fi
 
@@ -35,7 +35,7 @@ check_file_exists "$SERVER_CERT"
 check_file_exists "$SERVER_KEY"
 
 if ! getent group openldap >/dev/null 2>&1; then
-    print_error "No existe el grupo openldap. Instalar OpenLDAP primero"
+    print_error "No existe el grupo openldap. OpenLDAP debe estar instalado previamente"
     exit 1
 fi
 

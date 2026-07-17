@@ -42,7 +42,7 @@ El principal `http/web.fis.epn.ec` mantiene la equivalencia solicitada con `http
 
 ## Despliegue del primario (idm1)
 
-Ejecutar como root, solamente en `idm1`:
+El despliegue se realiza como `root`, solamente en `idm1`:
 
 ```text
 1. bash kerberos/scripts/00-install-kerberos.sh
@@ -55,31 +55,40 @@ Ejecutar como root, solamente en `idm1`:
 
 `01-init-realm.sh` es exclusivo del primario. Nunca debe ejecutarse en `idm2`: el secundario no crea un realm ni una base nueva.
 
-El ultimo paso genera `principals/keytabs/idm1.keytab` e `principals/keytabs/idm2.keytab`. Cada archivo contiene el alias y el FQDN real de su VM. Copiar `idm1.keytab` a `/etc/krb5.keytab` en idm1 e `idm2.keytab` al mismo destino en idm2, mediante un canal seguro, con propietario `root:root` y modo `0600`.
+El ultimo paso genera `principals/keytabs/idm1.keytab` e
+`principals/keytabs/idm2.keytab`. Cada archivo contiene el alias y el FQDN real
+de su VM. El keytab de idm1 se copia a `/etc/krb5.keytab` en idm1 y el de idm2
+se copia a la misma ruta en idm2 mediante un canal seguro, con propietario
+`root:root` y modo `0600`.
 
 ## Preparacion y primera propagacion del secundario (idm2)
 
-En Ubuntu Server 26.04, `kpropd` se distribuye en el paquete separado `krb5-kpropd`, su binario es `/usr/sbin/kpropd` y la unidad correcta es `krb5-kpropd.service`. No se debe crear una unidad `kpropd.service` manual.
+En Ubuntu Server 26.04, `kpropd` se distribuye en el paquete separado
+`krb5-kpropd`, su binario es `/usr/sbin/kpropd` y la unidad correcta es
+`krb5-kpropd.service`. No se crea una unidad `kpropd.service` manual.
 
 El orden inicial en idm2 es:
 
 ```text
-1. Instalar MIT Kerberos y krb5-kpropd con 00-install-kerberos.sh.
-2. Instalar krb5.conf, kdc.conf y kpropd.acl con 06-configure-secondary-kdc.sh.
-3. Instalar /etc/krb5.keytab que contenga host/kdc2 y host/idm2.
-4. Copiar el stash de idm1 a /etc/krb5kdc/stash por un canal seguro.
-5. Ejecutar de nuevo 06-configure-secondary-kdc.sh para mantener krb5-kdc detenido e iniciar krb5-kpropd.
-6. Verificar que kpropd escucha en TCP 754.
-7. Recibir la primera propagacion desde idm1.
-8. Verificar la base con kadmin.local y habilitar/iniciar krb5-kdc.
-9. Probar autenticacion y failover.
+1. Se instala MIT Kerberos y krb5-kpropd con 00-install-kerberos.sh.
+2. Se instalan krb5.conf, kdc.conf y kpropd.acl con 06-configure-secondary-kdc.sh.
+3. Se instala /etc/krb5.keytab con host/kdc2 y host/idm2.
+4. El archivo `stash` de idm1 se copia a /etc/krb5kdc/stash por un canal seguro.
+5. Se ejecuta de nuevo 06-configure-secondary-kdc.sh para mantener krb5-kdc detenido e iniciar krb5-kpropd.
+6. Se verifica que kpropd escucha en TCP 754.
+7. Se recibe la primera propagacion desde idm1.
+8. La base se verifica con kadmin.local y se habilita/inicia krb5-kdc.
+9. Se prueba la autenticacion y la conmutacion por error.
 ```
 
 El script del secundario instala primero los archivos de configuracion. Si todavia faltan la keytab o el stash, termina con un mensaje claro; tras instalarlos se ejecuta de nuevo. Mientras no exista `/var/lib/krb5kdc/principal`, detiene `krb5-kdc` y habilita/inicia `krb5-kpropd`. Tambien valida el principal `host/idm2.fis.epn.ec@FIS.EPN.EC` sin mostrar claves.
 
-El stash se genera **solo** cuando se inicializa el realm en idm1. Copiarlo de manera segura a idm2 como `/etc/krb5kdc/stash`, con propietario `root:root` y permisos `0600`. Nunca se versiona ni se almacena en este repositorio.
+El archivo `stash` se genera **solo** cuando se inicializa el realm en idm1. Se
+copia de manera segura a idm2 como `/etc/krb5kdc/stash`, con propietario
+`root:root` y permisos `0600`. Nunca se versiona ni se almacena en este
+repositorio.
 
-Una vez que `kpropd` escuche, desde idm1 ejecutar:
+Cuando `kpropd` escucha, desde idm1 se ejecuta:
 
 ```bash
 sudo make kerberos-check-propagation
@@ -97,7 +106,7 @@ sudo systemctl enable --now krb5-kdc
 
 ## Validacion
 
-En idm2, verificar el receptor antes de la primera propagacion:
+En idm2, el receptor se verifica antes de la primera propagacion con:
 
 ```bash
 command -v kpropd
@@ -106,7 +115,8 @@ sudo ss -ltn 'sport = :754'
 sudo klist -k /etc/krb5.keytab
 ```
 
-Para probar el failover real, detener `krb5-kdc` en idm1 y, desde idm2, ejecutar:
+Para probar la conmutacion por error real, `krb5-kdc` se detiene en idm1 y,
+desde idm2, se ejecuta:
 
 ```bash
 sudo systemctl stop krb5-kdc       # en idm1
@@ -120,4 +130,8 @@ La prueba equivalente del repositorio es `make kerberos-failover`; solicita el T
 
 ## Seguridad
 
-No guardar contrasenas, hashes, keytabs, stash ni dumps de bases en Git. Los keytabs generados viven en `principals/keytabs/`, directorio ignorado por Git, y deben transferirse por un canal seguro. Las exportaciones usan `ktadd -norandkey`, por lo que recrear el archivo de salida no rota las claves de los principals existentes.
+Las contrasenas, hashes, keytabs, archivos `stash` y dumps de bases no se
+guardan en Git. Los keytabs generados se ubican en `principals/keytabs/`, un
+directorio ignorado por Git, y se transfieren por un canal seguro. Las
+exportaciones usan `ktadd -norandkey`, por lo que la recreacion del archivo de
+salida no rota las claves de los principals existentes.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# mide failover KDC con keytab de prueba; requiere --apply
+# mide la conmutación por error del KDC con un keytab de prueba; requiere --apply
 
 set -euo pipefail
 
@@ -39,7 +39,7 @@ RESULT_FILE="$PROJECT_DIR/results/faults/kdc-failover.csv"
 PRIMARY_STOPPED_BY_SCRIPT=false
 TRACE_FILE=""
 
-print_title "Prueba de failover KDC"
+print_title "Prueba de conmutación por error del KDC"
 
 require_command kdestroy
 require_command kinit
@@ -56,14 +56,14 @@ check_file_exists "$KRB_TEST_KEYTAB"
 require_file_not_world_readable "$KRB_TEST_KEYTAB"
 
 if [ -z "$MODE" ]; then
-    print_error "Seleccione --manual o --ssh-primary USUARIO@idm1"
+    print_error "Se requiere seleccionar --manual o --ssh-primary USUARIO@idm1"
     exit 1
 fi
 
 if [ "$APPLY" = false ]; then
-    print_info "Dry-run: se usaria kinit -k con KRB_TEST_KEYTAB sin imprimir su contenido"
+    print_info "Simulación: se usaría kinit -k con KRB_TEST_KEYTAB sin imprimir su contenido"
     print_info "Principal de prueba: $KRB_TEST_PRINCIPAL"
-    print_info "El trace temporal identificaria el KDC usado y se eliminaria al finalizar"
+    print_info "La traza temporal identificaría el KDC utilizado y se eliminaría al finalizar"
     exit 0
 fi
 
@@ -147,7 +147,7 @@ else
     PRIMARY_STOPPED_BY_SCRIPT=true
 fi
 
-if measured_kinit "Failover"; then
+if measured_kinit "Conmutación por error"; then
     failover_ms="$MEASURED_MS"
     kdc_used="$MEASURED_KDC"
     result="ok"
@@ -163,7 +163,7 @@ if [ "$MODE" = "manual" ]; then
     print_info "Restaure krb5-kdc en idm1 y escriba RESTAURADO"
     read -r -p "Confirmacion: " restored
     if [ "$restored" != "RESTAURADO" ]; then
-        print_error "Debe restaurar manualmente: sudo systemctl start krb5-kdc"
+        print_error "La restauración manual se realiza con: sudo systemctl start krb5-kdc"
         exit 1
     fi
 else
@@ -176,8 +176,8 @@ if ! tcp_check "$PRIMARY_KDC_HOST" "$PRIMARY_KDC_PORT" 5; then
 fi
 
 if [ "$result" != "ok" ]; then
-    print_error "El failover KDC no completo kinit con el keytab de prueba"
+    print_error "La conmutación por error del KDC no completó kinit con el keytab de prueba"
     exit 1
 fi
 
-print_ok "Failover KDC en $failover_ms ms; respondio $kdc_used"
+print_ok "Conmutación por error del KDC en $failover_ms ms; respondió $kdc_used"

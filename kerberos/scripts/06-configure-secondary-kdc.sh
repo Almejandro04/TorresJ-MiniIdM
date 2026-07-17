@@ -47,7 +47,7 @@ if [ -f "$DATABASE_FILE" ]; then
 fi
 
 if [ ! -f "$KEYTAB_FILE" ] || [ ! -f "$STASH_FILE" ]; then
-    print_error "Antes de iniciar kpropd instale $KEYTAB_FILE y el stash seguro $STASH_FILE"
+    print_error "Antes de iniciar kpropd, $KEYTAB_FILE y el stash seguro $STASH_FILE deben estar instalados"
     print_error "El stash se genera solo en idm1 y debe copiarse con propietario root y modo 0600"
     exit 1
 fi
@@ -62,5 +62,5 @@ systemctl stop krb5-kdc
 ensure_kpropd_running
 
 print_info "kpropd escucha en TCP 754; reciba ahora la primera base desde idm1"
-print_info "Despues de verificar la base con kadmin.local, habilite krb5-kdc"
+print_info "Después de verificar la base con kadmin.local, se habilita krb5-kdc"
 print_ok "KDC secundario preparado"

@@ -42,7 +42,7 @@ require_keytab_principal "$KEYTAB_FILE" "$HOST_PRINCIPAL"
 
 if [ "$CHECK_ONLY" = true ]; then
     print_ok "Requisitos locales de propagacion correctos"
-    print_info "Confirmar en idm2 el stash, host/idm2.fis.epn.ec y krb5-kpropd en TCP 754"
+    print_info "En idm2 se confirman el stash, host/idm2.fis.epn.ec y krb5-kpropd en TCP 754"
     exit 0
 fi
 

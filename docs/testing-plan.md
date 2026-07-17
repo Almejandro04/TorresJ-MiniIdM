@@ -1,14 +1,14 @@
-# Testing plan
+# Plan de pruebas
 
-| Test | Command | Expected result |
+| Prueba | Comando | Resultado esperado |
 |---|---|---|
-| LDAP search | `make ldap-search` | User entries are returned |
-| LDAPS | `bash tests/ldap/test-ldaps.sh` | CA validation succeeds |
-| LDAP replication | `bash tests/ldap/test-replication-delay.sh` | New user appears on ldap2 |
-| Kerberos login | `make kerberos-kinit` | TGT appears in klist |
-| Service ticket | `bash tests/kerberos/test-service-ticket.sh` | Service ticket appears in klist |
-| KDC failover | `make kerberos-failover` | Authentication succeeds through kdc2 |
-| LDAP failover | `make ha-failover` | Read succeeds with ldap1 stopped |
-| Expired certificate | `bash tests/tls/test-expired-cert.sh` | OpenSSL rejects certificate |
-| Network partition | `bash tests/fault-injection/network-partition.sh` | Service failure is measured |
-| Process crash | `bash tests/fault-injection/crash-server.sh` | Recovery time is recorded |
+| Búsqueda LDAP | `make ldap-search` | Se devuelven entradas de usuario |
+| LDAPS | `bash tests/ldap/test-ldaps.sh` | Se completa la validación de la CA |
+| Replicación LDAP | `bash tests/ldap/test-replication-delay.sh` | El usuario nuevo aparece en ldap2 |
+| Inicio de sesión Kerberos | `make kerberos-kinit` | El TGT aparece en `klist` |
+| Ticket de servicio | `bash tests/kerberos/test-service-ticket.sh` | El ticket de servicio aparece en `klist` |
+| Conmutación por error del KDC | `make kerberos-failover` | La autenticación se completa mediante kdc2 |
+| Conmutación por error de LDAP | `make ha-failover` | La lectura se completa con ldap1 detenido |
+| Certificado expirado | `bash tests/tls/test-expired-cert.sh` | OpenSSL rechaza el certificado |
+| Partición de red | `bash tests/fault-injection/network-partition.sh` | Se mide el fallo del servicio |
+| Caída de proceso | `bash tests/fault-injection/crash-server.sh` | Se registra el tiempo de recuperación |

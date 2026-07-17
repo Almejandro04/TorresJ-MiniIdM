@@ -1,6 +1,8 @@
 # Flujo LDAP Kerberos
 
-LDAP almacena la identidad, perfil, grupos, home, shell y correo. Kerberos almacena la credencial de autenticacion y entrega tickets.
+LDAP almacena la identidad, el perfil, los grupos, el directorio personal, el
+shell y el correo. Kerberos almacena la credencial de autenticacion y entrega
+tickets.
 
 ```text
 Cliente -> LDAP: consulta uid y perfil
@@ -17,4 +19,6 @@ uid=malvan,ou=users,dc=fis,dc=epn,dc=ec -> malvan@FIS.EPN.EC
 uid=dnoboa,ou=users,dc=fis,dc=epn,dc=ec -> dnoboa@FIS.EPN.EC
 ```
 
-Esta base no sincroniza contrasenas entre LDAP y Kerberos. Las contrasenas se gestionan por Kerberos y los hashes LDAP son solo atributos de la plantilla del directorio.
+Esta base no sincroniza contrasenas entre LDAP y Kerberos. Las contrasenas se
+gestionan mediante Kerberos y los hashes LDAP solo son atributos de la
+plantilla del directorio.

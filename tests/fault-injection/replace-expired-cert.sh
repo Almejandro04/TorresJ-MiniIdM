@@ -25,4 +25,4 @@ install -m "$cert_mode" -o "$cert_owner" -g "$cert_group" "$TARGET_CERT" "$TARGE
 install -m "$key_mode" -o "$key_owner" -g "$key_group" "$TARGET_KEY" "$TARGET_KEY.valid"
 install -m "$cert_mode" -o "$cert_owner" -g "$cert_group" "$EXPIRED_CERT" "$TARGET_CERT"
 install -m "$key_mode" -o "$key_owner" -g "$key_group" "$EXPIRED_KEY" "$TARGET_KEY"
-echo "[OK] Certificado expirado instalado. Restaurar archivos .valid despues de la prueba"
+echo "[CORRECTO] Certificado expirado instalado. Los archivos .valid se restauran despues de la prueba"

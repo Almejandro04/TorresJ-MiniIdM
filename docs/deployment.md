@@ -1,40 +1,42 @@
-# Deployment
+# Despliegue
 
-## Topology
+## Topología
 
-Use the two VM option from `inventory/topology.md`.
+Se utiliza la opción de dos VM descrita en
+[`inventory/topology.md`](../inventory/topology.md).
 
 | VM | IP | Roles |
 |---|---|---|
-| idm1 | 192.168.56.10 | CA ECDSA, ldap1, kdc1, Apache, HAProxy, Prometheus, node exporter |
-| idm2 | 192.168.56.11 | ldap2, kdc2, cliente de pruebas, node exporter |
+| idm1 | 192.168.56.10 | CA ECDSA, ldap1, kdc1, Apache, HAProxy, Prometheus y node exporter |
+| idm2 | 192.168.56.11 | ldap2, kdc2, cliente de pruebas y node exporter |
 
-Los roles son logicos y comparten dos nodos fisicos: ldap1 y kdc1 resuelven a
-idm1; ldap2 y kdc2 a idm2. HAProxy, Apache y Prometheus existen solo en idm1.
-No existe una VM edge, VIP, Keepalived ni un tercer nodo en la implementacion
-final. HAProxy usa el puerto externo 1636 porque slapd ya ocupa el 636 de
-idm1; los backends LDAP permanecen en 636 con TLS.
+Los roles son lógicos y se distribuyen entre dos nodos físicos: ldap1 y kdc1
+resuelven a idm1; ldap2 y kdc2 resuelven a idm2. HAProxy, Apache y Prometheus
+solo se ejecutan en idm1. No se utiliza una VM perimetral, VIP, Keepalived ni
+un tercer nodo. HAProxy utiliza el puerto externo 1636 porque slapd ya ocupa
+el puerto 636 de idm1; los servidores LDAP mantienen TLS en el puerto 636.
 
-LDAP usa ldap1 como maestro de escritura y ldap2 como replica. HAProxy envia
-las conexiones a ldap1 de forma normal y activa ldap2 solo como respaldo. El
-failover LDAP garantiza principalmente lecturas; no hay LDAP multimaster ni
-alta disponibilidad de escritura. Kerberos puede obtener tickets desde kdc2
-cuando kdc1 falla. La perdida completa de idm1 no esta cubierta.
+LDAP utiliza ldap1 como maestro de escritura y ldap2 como réplica. HAProxy
+envía las conexiones a ldap1 normalmente y activa ldap2 únicamente como
+respaldo. La conmutación por error de LDAP conserva principalmente las
+consultas de lectura; no se utiliza LDAP multimaestro ni alta disponibilidad de
+escritura. Kerberos puede obtener tickets desde kdc2 cuando kdc1 falla. La
+pérdida completa de idm1 no está cubierta.
 
-## Hosts file
+## Archivo hosts
 
-Add these entries to `/etc/hosts` on both VM.
+Las siguientes entradas se añaden a `/etc/hosts` en ambas VM:
 
 ```text
 192.168.56.10 idm1.fis.epn.ec idm1 ldap1.fis.epn.ec ldap1 kdc1.fis.epn.ec kdc1 ca.fis.epn.ec ca ldap.fis.epn.edu.ec web.fis.epn.ec
 192.168.56.11 idm2.fis.epn.ec idm2 ldap2.fis.epn.ec ldap2 kdc2.fis.epn.ec kdc2
 ```
 
-## Deployment order
+## Orden de despliegue
 
 ### idm1
 
-Ejecutar como root:
+En idm1, la preparación inicial se realiza como `root`:
 
 ```text
 make pki
@@ -46,14 +48,15 @@ make ldap-enable-ldaps LDAP_NODE=ldap1
 make ldap-enable-ldaps-listener
 ```
 
-Ejecutar como usuario normal:
+El hash LDAP se genera desde una cuenta sin privilegios:
 
 ```text
 make ldap-hash
 ```
 
-Reemplazar los marcadores de contrasena de los LDIF solo en la copia local. No
-guardar los hashes reales en Git. Despues, continuar como root:
+Los marcadores de contraseña de los LDIF se sustituyen únicamente en la copia
+local. Los hashes reales no se guardan en Git. Después, el despliegue continúa
+como `root`:
 
 ```text
 make ldap-load
@@ -74,7 +77,7 @@ sudo bash monitoring/scripts/01-start-prometheus.sh
 
 ### idm2
 
-Run as root:
+En idm2, el despliegue se realiza como `root`:
 
 ```text
 bash ldap/scripts/00-install-openldap.sh
@@ -84,32 +87,44 @@ make ldap-enable-ldaps LDAP_NODE=ldap2
 make ldap-enable-ldaps-listener
 make ldap-replication-consumer
 bash kerberos/scripts/00-install-kerberos.sh
-# Copiar idm2.keytab a /etc/krb5.keytab y el stash de idm1 a /etc/krb5kdc/stash
+# Se copia idm2.keytab a /etc/krb5.keytab y el stash de idm1 a /etc/krb5kdc/stash
 bash kerberos/scripts/06-configure-secondary-kdc.sh
 sudo bash monitoring/scripts/00-install-monitoring.sh
 ```
 
-El script del consumidor solicita de forma oculta la contrasena de
-`svc-replica`, la inserta solo en un LDIF temporal con permisos restrictivos y
-lo elimina al finalizar. La plantilla versionada conserva
-`REPLACE_WITH_PASSWORD`; no se debe editar con una contrasena real.
+El script del consumidor solicita de forma oculta la contraseña de
+`svc-replica`, la inserta solamente en un LDIF temporal con permisos
+restrictivos y la elimina al finalizar. La plantilla versionada conserva
+`REPLACE_WITH_PASSWORD`; no se edita con una contraseña real.
 
-For Kerberos, `kdc1.fis.epn.ec` and `kdc2.fis.epn.ec` are service aliases; the real host names are `idm1.fis.epn.ec` and `idm2.fis.epn.ec`. Copy `idm1.keytab` to `/etc/krb5.keytab` on idm1 and `idm2.keytab` on idm2 with root ownership and mode `0600`. The idm2 keytab must contain both `host/kdc2.fis.epn.ec@FIS.EPN.EC` and `host/idm2.fis.epn.ec@FIS.EPN.EC`.
+Para Kerberos, `kdc1.fis.epn.ec` y `kdc2.fis.epn.ec` son alias de servicio; los
+nombres reales de host son `idm1.fis.epn.ec` e `idm2.fis.epn.ec`. El keytab de
+idm1 se copia a `/etc/krb5.keytab` en idm1 y el de idm2 se copia a la misma
+ruta en idm2, con propietario `root:root` y modo `0600`. El keytab de idm2
+debe incluir `host/kdc2.fis.epn.ec@FIS.EPN.EC` y
+`host/idm2.fis.epn.ec@FIS.EPN.EC`.
 
-Copy the stash generated by `01-init-realm.sh` on idm1 through a secure channel to `/etc/krb5kdc/stash` on idm2, with owner `root:root` and mode `0600`. Never commit this file. Do not run `kerberos/scripts/01-init-realm.sh` on idm2: the secondary receives its database through `kprop`.
+El archivo `stash` generado por `01-init-realm.sh` en idm1 se copia por un
+canal seguro a `/etc/krb5kdc/stash` en idm2, con propietario `root:root` y modo
+`0600`. Este archivo no se versiona. `kerberos/scripts/01-init-realm.sh` no se
+ejecuta en idm2: el KDC secundario recibe su base mediante `kprop`.
 
-With `krb5-kpropd` listening on TCP 754 in idm2, run the following as root on idm1:
+Cuando `krb5-kpropd` escucha en TCP 754 en idm2, en idm1 se realiza la
+propagación como `root`:
 
 ```text
 make kerberos-check-propagation
 make kerberos-propagate KDC_SECONDARY=kdc2.fis.epn.ec
 ```
 
-The propagation script produces a protected `kdb5_util dump` and sends that dump with `kprop`; it never sends `/var/lib/krb5kdc/principal` directly. After the first propagation, verify the database on idm2 with `kadmin.local` and run `systemctl enable --now krb5-kdc` there.
+El script de propagación genera un dump protegido de `kdb5_util` y lo envía con
+`kprop`; nunca envía directamente `/var/lib/krb5kdc/principal`. Después de la
+primera propagación, la base se verifica en idm2 con `kadmin.local` y allí se
+habilita `krb5-kdc` con `systemctl enable --now krb5-kdc`.
 
-## Validation
+## Validación
 
-Run as normal user from idm2:
+Desde idm2, la validación se realiza con una cuenta sin privilegios:
 
 ```text
 make ldap-search LDAP_URI=ldap://ldap1.fis.epn.ec
@@ -120,15 +135,21 @@ make ha-test LDAP_LB_URI=ldaps://ldap.fis.epn.edu.ec:1636
 make test-run
 ```
 
-Expected LDAP result: user entries are returned. Expected LDAPS result: OpenSSL verifies the CA. Expected Kerberos result: `klist` shows a TGT. Expected HAProxy result: LDAP search returns `jperez` through `ldap.fis.epn.edu.ec:1636`.
+Se espera que LDAP devuelva las entradas de usuario, que LDAPS valide la CA,
+que `klist` muestre un TGT y que la búsqueda mediante HAProxy devuelva
+`jperez` a través de `ldap.fis.epn.edu.ec:1636`.
 
-For the Kerberos failover test, stop `krb5-kdc` on idm1 and run `make kerberos-failover KRB_USER=jperez` from idm2. It must obtain a TGT and a ticket for `ldap/ldap2.fis.epn.ec` through the secondary.
+Para validar la conmutación por error de Kerberos, `krb5-kdc` se detiene en
+idm1 y desde idm2 se ejecuta `make kerberos-failover KRB_USER=jperez`. La
+prueba debe obtener un TGT y un ticket para `ldap/ldap2.fis.epn.ec` a través
+del KDC secundario.
 
-For LDAP HA validation, use `ldaps://ldap.fis.epn.edu.ec:1636`. External 636
-requires HAProxy on an independent node or IP and is not available while it
-shares idm1 with slapd.
+Para validar la alta disponibilidad de LDAP se utiliza
+`ldaps://ldap.fis.epn.edu.ec:1636`. El puerto externo 636 requiere que HAProxy
+se ejecute en un nodo o IP independiente, por lo que no está disponible cuando
+comparte idm1 con slapd.
 
-## Results
+## Resultados
 
-Los resultados finales reales estan en [`RESULTADOS.md`](../RESULTADOS.md).
-Los CSV crudos de ejecuciones locales permanecen ignorados y no se versionan.
+Los resultados finales se encuentran en [`RESULTADOS.md`](../RESULTADOS.md).
+Los CSV de ejecuciones locales permanecen ignorados y no se versionan.

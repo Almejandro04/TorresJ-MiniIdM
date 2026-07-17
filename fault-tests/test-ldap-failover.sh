@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# mide failover LDAP al detener slapd en idm1; requiere --apply
+# mide la conmutación por error de LDAP al detener slapd en idm1; requiere --apply
 
 set -euo pipefail
 
@@ -28,7 +28,7 @@ FAILOVER_TIMEOUT_SECONDS="${FAILOVER_TIMEOUT_SECONDS:-25}"
 RESULT_FILE="$PROJECT_DIR/results/faults/ldap-failover.csv"
 SLAPD_STOPPED=false
 
-print_title "Prueba de failover LDAP"
+print_title "Prueba de conmutación por error de LDAP"
 
 require_command hostname
 require_command systemctl
@@ -61,8 +61,8 @@ if ! systemctl is-active --quiet slapd || ! systemctl is-active --quiet haproxy;
 fi
 
 if [ "$APPLY" = false ]; then
-    print_info "Dry-run: se detendria slapd, se consultaria $LDAP_URI y se validaria la restauracion directa a ldap1"
-    print_info "No se puede confirmar de forma segura el backend HAProxy sin instrumentacion adicional"
+    print_info "Simulación: se detendría slapd, se consultaría $LDAP_URI y se validaría la restauración directa a ldap1"
+    print_info "No se puede confirmar de forma segura el servidor de HAProxy sin instrumentación adicional"
     exit 0
 fi
 
@@ -75,7 +75,7 @@ restore_slapd() {
             SLAPD_STOPPED=false
             return 0
         fi
-        print_error "No se pudo restaurar slapd; ejecute: sudo systemctl start slapd"
+        print_error "No se pudo restaurar slapd; la restauración manual se realiza con: sudo systemctl start slapd"
         return 1
     fi
 }

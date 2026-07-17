@@ -17,7 +17,7 @@ if [ "$#" -eq 0 ]; then
     print_info "Modo vista previa"
     print_info "Base DN: $BASE_DN"
     print_info "Administrador: $ADMIN_DN"
-    print_info "Ejecutar con --apply solo en una VM de laboratorio nueva"
+    print_info "La ejecución con --apply se realiza solo en una VM de laboratorio nueva"
     exit 0
 fi
 
@@ -74,4 +74,4 @@ print_info "Configurando base: $LDAP_DATABASE_DN"
 ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f "$CONFIG_LDIF"
 
 print_ok "Configuracion base de slapd aplicada"
-print_info "Cargar despues el DIT con: make ldap-load"
+print_info "El DIT se carga después con: make ldap-load"

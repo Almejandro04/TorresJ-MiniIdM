@@ -29,7 +29,7 @@ while IFS= read -r user_name; do
         continue
     fi
 
-    print_info "Definir contrasena para: $principal"
+    print_info "Se define la contrasena para: $principal"
     kadmin.local -q "addprinc $principal"
 done < "$USERS_FILE"
 

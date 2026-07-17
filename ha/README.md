@@ -2,7 +2,8 @@
 
 HAProxy se ejecuta en idm1 y expone `ldap.fis.epn.edu.ec` en el puerto externo
 `1636`. Termina TLS con el certificado del nombre virtual y conecta por TLS a
-los backends `ldap1` (idm1) y `ldap2` (idm2), ambos en su puerto interno 636.
+los servidores LDAP `ldap1` (idm1) y `ldap2` (idm2), ambos en su puerto
+interno 636.
 El puerto externo 636 solo es viable cuando HAProxy tiene un nodo o IP
 independiente; en esta topologia lo utiliza slapd en idm1.
 
@@ -13,7 +14,7 @@ ldap2, kdc1 y kdc2 son roles logicos.
 
 HAProxy envia las conexiones a ldap1 en condiciones normales. ldap2 esta
 configurado como `backup`, por lo que solo recibe conexiones cuando ldap1 deja
-de responder. El failover conserva principalmente consultas de lectura: ldap1
+de responder. La conmutacion por error conserva principalmente consultas de lectura: ldap1
 sigue siendo el unico maestro de escritura y no hay LDAP multimaster ni alta
 disponibilidad de escritura.
 
@@ -29,8 +30,9 @@ sudo bash ha/scripts/01-configure-ldap-lb.sh
 make ha-test LDAP_LB_URI=ldaps://ldap.fis.epn.edu.ec:1636
 ```
 
-Para la prueba controlada de failover desde idm1, usar el script protegido por
-`--apply`; detiene y restaura slapd mediante un trap:
+Para la prueba controlada de conmutacion por error desde idm1, se utiliza el
+script protegido por `--apply`; este detiene y restaura slapd mediante un
+`trap`:
 
 ```text
 sudo bash fault-tests/test-ldap-failover.sh --apply

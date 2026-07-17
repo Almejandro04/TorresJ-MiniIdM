@@ -1,14 +1,18 @@
-# Security notes
+# Notas de seguridad
 
-Generated private keys, certificates, CSR files, CA state, keytabs and raw results must not be uploaded to Git.
+Las claves privadas generadas, los certificados, los archivos CSR, el estado
+de la CA, los keytabs y los resultados crudos no se suben a Git.
 
-If generated artifacts were tracked before `.gitignore` was added, remove them from the Git index without deleting the local files. Rotate the affected keys in a real environment.
+Si los artefactos generados se hubieran incluido antes de agregar
+`.gitignore`, se retiran del índice de Git sin borrar los archivos locales. En
+un entorno real, las claves afectadas se rotan.
 
-For the academic laboratory, regenerate local PKI artifacts with:
+En el laboratorio académico, los artefactos PKI locales se regeneran con:
 
 ```text
 make pki
 make pki-demo-certs
 ```
 
-Do not commit passwords, password hashes, private keys or keytabs.
+Las contraseñas, los hashes de contraseña, las claves privadas y los keytabs
+no se versionan.

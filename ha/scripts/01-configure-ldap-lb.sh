@@ -26,7 +26,7 @@ check_file_exists "$LB_CERT"
 check_file_exists "$LB_KEY"
 
 if ! getent group haproxy >/dev/null 2>&1; then
-    print_error "No existe el grupo haproxy. Instalar HAProxy primero"
+    print_error "No existe el grupo haproxy. HAProxy debe estar instalado previamente"
     exit 1
 fi
 

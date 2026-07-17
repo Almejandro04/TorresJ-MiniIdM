@@ -1,10 +1,10 @@
-# Web TLS Kerberos
+# Servicio web con TLS y Kerberos
 
 El servicio web usa Apache, TLS y `mod_auth_gssapi`. La pagina es estatica para mantener el componente simple.
 
 La topologia final usa dos VM: idm1 aloja Apache junto con CA, ldap1, kdc1,
 HAProxy y Prometheus; idm2 aloja ldap2, kdc2 y el cliente. No existe un nodo
-edge. El nombre `web.fis.epn.ec` apunta a idm1.
+perimetral. El nombre `web.fis.epn.ec` apunta a idm1.
 
 ## Requisitos
 
@@ -30,4 +30,4 @@ directorio TLS compartido por slapd. No se guardan claves ni keytabs en Git.
 `dns_canonicalize_hostname = false` evita que clientes Kerberos transformen
 `HTTP/web.fis.epn.ec` en el principal de otro alias, por ejemplo
 `HTTP/ldap1.fis.epn.ec`. Apache usa explicitamente
-`HTTP/web.fis.epn.ec@FIS.EPN.EC` como acceptor.
+`HTTP/web.fis.epn.ec@FIS.EPN.EC` como principal aceptador.

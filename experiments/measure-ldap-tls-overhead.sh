@@ -21,7 +21,7 @@ SUMMARY_FILE="$PROJECT_DIR/results/experiments/ldap-tls-summary.csv"
 LDAP_LATENCIES=()
 LDAPS_LATENCIES=()
 
-print_title "Medicion de overhead TLS LDAP"
+print_title "Medición de sobrecarga TLS LDAP"
 
 require_command ldapsearch
 require_command timeout
@@ -125,5 +125,5 @@ if [ -n "$ldap_avg" ] && [ -n "$ldaps_avg" ]; then
 fi
 
 append_csv_row "$SUMMARY_FILE" "$ldap_avg" "$ldaps_avg" "$tls_overhead_ms" "$tls_overhead_percent"
-print_info "tls_overhead_ms=${tls_overhead_ms:-not_available}, tls_overhead_percent=${tls_overhead_percent:-not_available}"
+print_info "tls_overhead_ms=${tls_overhead_ms:-no_disponible}, tls_overhead_percent=${tls_overhead_percent:-no_disponible}"
 print_ok "Resultados guardados en $RESULT_FILE y $SUMMARY_FILE"

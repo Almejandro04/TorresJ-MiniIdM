@@ -23,7 +23,7 @@ require_command hostname
 local_hostname="$(hostname -s)"
 local_fqdn="$(hostname -f 2>/dev/null || true)"
 if [ "$local_hostname" = "$SECONDARY_HOSTNAME" ] || [ "$local_hostname" = "kdc2" ] || [ "$local_fqdn" = "$SECONDARY_FQDN" ]; then
-    print_error "No ejecute 01-init-realm.sh en idm2: el KDC secundario recibe la base mediante kprop"
+    print_error "01-init-realm.sh no se ejecuta en idm2: el KDC secundario recibe la base mediante kprop"
     exit 1
 fi
 

@@ -30,6 +30,6 @@ fi
 PASSWORD_HASH="$(slappasswd -h '{SSHA}' -s "$LDAP_PASSWORD")"
 unset LDAP_PASSWORD LDAP_PASSWORD_CONFIRM
 
-print_info "Reemplazar el placeholder con esta linea:"
+print_info "El marcador se reemplaza con esta linea:"
 printf 'userPassword: %s\n' "$PASSWORD_HASH"
 print_ok "Hash LDAP generado"

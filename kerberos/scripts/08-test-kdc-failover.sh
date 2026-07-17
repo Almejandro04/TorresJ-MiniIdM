@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# prueba failover KDC
+# prueba de conmutación por error del KDC
 
 set -euo pipefail
 
@@ -12,7 +12,7 @@ REALM="FIS.EPN.EC"
 USER_NAME="${1:-jperez}"
 SERVICE_PRINCIPAL="${2:-ldap/ldap2.fis.epn.ec}"
 
-print_title "Prueba failover KDC"
+print_title "Prueba de conmutación por error del KDC"
 
 require_command kdestroy
 require_command kinit
@@ -20,7 +20,7 @@ require_command klist
 require_command kvno
 require_command date
 
-print_info "Detener krb5-kdc en kdc1 antes de ejecutar esta prueba"
+print_info "Esta prueba se ejecuta después de detener krb5-kdc en kdc1"
 start_time="$(date +%s%3N)"
 kdestroy || true
 kinit "$USER_NAME@$REALM"
@@ -31,4 +31,4 @@ print_info "Solicitando ticket de servicio para $SERVICE_PRINCIPAL@$REALM"
 kvno "$SERVICE_PRINCIPAL@$REALM"
 klist
 print_info "Tiempo de autenticacion: $((end_time - start_time)) ms"
-print_ok "Prueba failover KDC completada"
+print_ok "Prueba de conmutación por error del KDC completada"

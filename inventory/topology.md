@@ -2,17 +2,17 @@
 
 ## Objetivo
 
-Documentar la distribucion logica de los servicios del proyecto.
+Este documento describe la distribucion logica de los servicios del proyecto.
 
 La implementacion final usa dos maquinas virtuales. Los roles LDAP, KDC, web,
 balanceo y monitoreo son logicos y se distribuyen entre esos dos nodos.
 
 ## Componentes requeridos
 
-El proyecto debe incluir:
+El proyecto incluye los siguientes componentes:
 
-- LDAP master.
-- LDAP replica.
+- LDAP maestro.
+- LDAP réplica.
 - KDC Kerberos primario.
 - KDC Kerberos secundario.
 - PKI con CA raiz.
@@ -26,11 +26,11 @@ El proyecto debe incluir:
 
 | Nodo | IP sugerida | Rol |
 |---|---|---|
-| idm1 | 192.168.56.10 | CA, LDAP Master (ldap1), KDC Primario (kdc1), Balanceador, Web, Prometheus |
-| idm2 | 192.168.56.11 | LDAP Replica, KDC Secundario, Cliente de pruebas |
+| idm1 | 192.168.56.10 | CA, LDAP maestro (ldap1), KDC primario (kdc1), balanceador, web y Prometheus |
+| idm2 | 192.168.56.11 | LDAP réplica, KDC secundario y cliente de pruebas |
 
-No existe un nodo `edge`: HAProxy comparte idm1 con slapd y por eso expone
-LDAPS en 1636, mientras los backends ldap1 y ldap2 mantienen 636. HAProxy,
+No existe un nodo perimetral: HAProxy comparte idm1 con slapd y por eso expone
+LDAPS en 1636, mientras ldap1 y ldap2 mantienen 636. HAProxy,
 Apache y Prometheus solo se ejecutan en idm1. No existen VIP, Keepalived ni un
 tercer nodo; la perdida completa de idm1 no esta cubierta.
 
@@ -39,9 +39,9 @@ tercer nodo; la perdida completa de idm1 no esta cubierta.
 ```text
 Cliente
   |
-  | kinit / ticket Kerberos
+  | kinit / ticket de Kerberos
   v
-KDC Primario o Secundario
+KDC primario o secundario
 
 Cliente
   |
@@ -57,28 +57,28 @@ Cliente
   |
   | HTTPS + Kerberos
   v
-Servicio Web
+Servicio web
 ```
 
 ## Pruebas principales
 
 | Prueba | Descripcion |
 |---|---|
-| LDAP search | Consultar usuarios en LDAP |
-| LDAPS | Verificar TLS con openssl s_client |
-| Replicacion LDAP | Crear usuario en ldap1 y verificar en ldap2 |
-| KDC failover | Detener KDC primario y autenticar con secundario |
-| LDAP failover | Detener slapd en ldap1 y consultar por balanceador |
-| Certificado expirado | Reemplazar certificado valido por uno expirado |
-| Particion de red | Usar iptables para simular fallo de comunicacion |
-| Tiempo de recuperacion | Medir cuanto tarda el servicio en recuperarse |
+| Búsqueda LDAP | Se consultan usuarios en LDAP |
+| LDAPS | Se verifica TLS con `openssl s_client` |
+| Replicacion LDAP | Se crea un usuario en ldap1 y se verifica en ldap2 |
+| Conmutación por error del KDC | Se detiene el KDC primario y se autentica con el secundario |
+| Conmutación por error de LDAP | Se detiene slapd en ldap1 y se consulta por el balanceador |
+| Certificado expirado | Se reemplaza el certificado valido por uno expirado |
+| Partición de red | Se utiliza `iptables` para simular un fallo de comunicacion |
+| Tiempo de recuperación | Se mide el tiempo de recuperacion del servicio |
 
 ## Metricas esperadas
 
 | Experimento | Metrica |
 |---|---|
 | Replicacion LDAP | Retardo de propagacion |
-| Failover del KDC | Latencia de autenticacion |
-| Overhead de TLS | Latencia de solicitudes |
-| Balanceo de carga | Throughput |
+| Conmutación por error del KDC | Latencia de autenticacion |
+| Sobrecarga de TLS | Latencia de solicitudes |
+| Balanceo de carga | Rendimiento |
 | Fallos de nodos | Tiempo de recuperacion |

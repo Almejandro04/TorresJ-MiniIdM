@@ -49,4 +49,4 @@ export_keytab_principals "$idm2_keytab" \
     "host/idm2.fis.epn.ec@$REALM"
 
 print_ok "Keytabs host exportados"
-print_info "Instalar idm1.keytab en idm1 e idm2.keytab en idm2 como /etc/krb5.keytab"
+print_info "idm1.keytab se instala en idm1 e idm2.keytab en idm2 como /etc/krb5.keytab"

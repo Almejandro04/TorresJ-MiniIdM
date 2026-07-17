@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# prueba throughput HAProxy
+# prueba de rendimiento de HAProxy
 
 set -euo pipefail
 
@@ -19,4 +19,4 @@ elapsed_ms="$((end_time - start_time))"
 throughput="$(awk -v count="$REQUESTS" -v elapsed="$elapsed_ms" 'BEGIN { if (elapsed == 0) print 0; else printf "%.2f", count / (elapsed / 1000) }')"
 
 printf '%s,%s,%s,%s,%s,%s\n' "$(date -Iseconds)" "$LDAP_URI" "$REQUESTS" "$elapsed_ms" "$throughput" ok >> "$RESULT_FILE"
-echo "[OK] Throughput: $throughput consultas por segundo"
+echo "[CORRECTO] Rendimiento: $throughput consultas por segundo"

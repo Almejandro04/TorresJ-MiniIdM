@@ -14,4 +14,4 @@ fi
 
 iptables -I OUTPUT -p tcp -d "$REMOTE_HOST" --dport "$REMOTE_PORT" -j DROP
 iptables -I INPUT -p tcp -s "$REMOTE_HOST" --sport "$REMOTE_PORT" -j DROP
-echo "[OK] Particion aplicada a $REMOTE_HOST:$REMOTE_PORT"
+echo "[CORRECTO] Particion aplicada a $REMOTE_HOST:$REMOTE_PORT"

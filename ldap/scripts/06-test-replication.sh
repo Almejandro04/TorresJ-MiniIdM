@@ -12,10 +12,10 @@ print_title "Prueba replicacion LDAP"
 
 BASE_DN="dc=fis,dc=epn,dc=ec"
 
-print_info "Consultando LDAP master ldap1"
+print_info "Consultando LDAP maestro ldap1"
 ldapsearch -x -H ldap://ldap1.fis.epn.ec -b "$BASE_DN" "(uid=jperez)" uid cn mail
 
-print_info "Consultando LDAP replica ldap2"
+print_info "Consultando LDAP réplica ldap2"
 ldapsearch -x -H ldap://ldap2.fis.epn.ec -b "$BASE_DN" "(uid=jperez)" uid cn mail
 
-print_ok "Fin prueba replica"
+print_ok "Fin de la prueba de réplica"

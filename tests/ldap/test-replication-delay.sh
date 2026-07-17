@@ -11,7 +11,7 @@ BASE_DN="dc=fis,dc=epn,dc=ec"
 RESULT_FILE="results/tables/ldap-replication.csv"
 
 if grep -q "REPLACE_WITH\|PLACEHOLDER" "$TEST_LDIF"; then
-    echo "[ERROR] Reemplazar el hash de $TEST_LDIF antes de ejecutar" >&2
+    echo "[ERROR] El hash de $TEST_LDIF se reemplaza antes de ejecutar" >&2
     exit 1
 fi
 
@@ -25,4 +25,4 @@ done
 end_time="$(date +%s%3N)"
 delay_ms="$((end_time - start_time))"
 printf '%s,%s,%s,%s,%s,%s\n' "$(date -Iseconds)" "$MASTER_URI" "$REPLICA_URI" testreplica "$delay_ms" ok >> "$RESULT_FILE"
-echo "[OK] Retardo de replicacion: $delay_ms ms"
+echo "[CORRECTO] Retardo de replicacion: $delay_ms ms"

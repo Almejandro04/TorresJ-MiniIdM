@@ -104,7 +104,7 @@ ldap_check() {
 }
 
 if [ "$APPLY" = false ]; then
-    print_info "Dry-run: se verificaria LDAP directo en $REMOTE_LDAP_URI y TCP $REMOTE_IP:$LDAP_PORT"
+    print_info "Simulación: se verificarían LDAP directo en $REMOTE_LDAP_URI y TCP $REMOTE_IP:$LDAP_PORT"
     print_info "Regla propuesta: ${output_rule[*]}"
     print_info "Regla propuesta: ${input_rule[*]}"
     print_info "La restauracion ocurriria antes de $TOTAL_TIMEOUT_SECONDS s"

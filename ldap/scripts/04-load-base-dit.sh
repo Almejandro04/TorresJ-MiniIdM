@@ -13,8 +13,8 @@ print_title "Carga del DIT base LDAP"
 LDAP_ADMIN_DN="cn=admin,dc=fis,dc=epn,dc=ec"
 
 if grep -R -E "REPLACE_WITH|PLACEHOLDER" "$PROJECT_DIR/ldap/ldif" >/dev/null; then
-    print_error "Reemplazar los placeholders de contrasena antes de cargar el DIT"
-    print_info "Generar un hash con: make ldap-hash"
+    print_error "Los marcadores de contrasena se reemplazan antes de cargar el DIT"
+    print_info "El hash se genera con: make ldap-hash"
     exit 1
 fi
 
