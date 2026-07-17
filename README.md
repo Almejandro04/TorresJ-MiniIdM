@@ -68,7 +68,7 @@ Puntos importantes del despliegue:
 ## Estructura del repositorio
 
 ```text
-docs/        Arquitectura, despliegue, seguridad y plan de pruebas
+docs/        Arquitectura, despliegue, seguridad, plan de pruebas y evidencias
 inventory/   Topologia, DNS y ejemplo de /etc/hosts
 pki/         CA OpenSSL ECDSA y certificados de servidor
 ldap/        DIT, TLS, replicacion y scripts OpenLDAP
@@ -119,3 +119,4 @@ protegido de `kdb5_util` y `kprop`; nunca se debe inicializar un realm nuevo en
 - [Notas de seguridad](docs/security-notes.md)
 - [Plan de pruebas](docs/testing-plan.md)
 - [Esquema del informe](docs/report-outline.md)
+- [Evidencias de ejecucion](docs/evidence/README.md)
